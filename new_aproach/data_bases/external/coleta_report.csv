@@ -1,0 +1,32 @@
+ticker,status,n_rows,note
+ANTM,delisted,0,sem dados
+APC,delisted,0,sem dados
+ARNC,delisted,0,sem dados
+BLL,delisted,0,sem dados
+CA,ok,512,
+CBS,delisted,0,sem dados
+CDAY,delisted,0,sem dados
+DISCA,delisted,0,sem dados
+DNB,delisted,0,sem dados
+DO,delisted,0,sem dados
+EMC,ok,661,
+ENDP,delisted,0,sem dados
+FB,ok,131,
+FBHS,delisted,0,sem dados
+FRC,delisted,0,sem dados
+FTR,delisted,0,sem dados
+GPS,delisted,0,sem dados
+HCP,delisted,0,sem dados
+LB,ok,379,
+MMC,delisted,0,sem dados
+MNK,delisted,0,sem dados
+MON,delisted,0,sem dados
+PEAK,delisted,0,sem dados
+PKI,delisted,0,sem dados
+RE,delisted,0,sem dados
+SE,ok,2060,
+STI,ok,921,
+TE,ok,1502,
+TMK,delisted,0,sem dados
+WRK,delisted,0,sem dados
+VIAC,delisted,0,sem dados

@@ -1,0 +1,21 @@
+period,n_dias,n_expected,n_present,n_missing,coverage_pct,missing_list
+2016/S1,125,505,474,31,93.9,"['ANTM', 'APC', 'ARNC', 'BHGE', 'BLL', 'CA', 'CBS', 'DISCA', 'DNB', 'DO', 'DOW', 'EMC', 'ENDP', 'FB', 'FBHS', 'FOX', 'FOXA', 'FTR', 'GPS', 'HCP', 'IR', 'LB', 'MMC', 'MNK', 'MON', 'PKI', 'SE', 'STI', 'TE', 'TMK', 'WRK']"
+2016/S2,127,506,478,28,94.5,"['ANTM', 'APC', 'ARNC', 'BHGE', 'BLL', 'CA', 'CBS', 'DISCA', 'DNB', 'DOW', 'ENDP', 'FB', 'FBHS', 'FOX', 'FOXA', 'FTR', 'GPS', 'HCP', 'IR', 'LB', 'MMC', 'MNK', 'MON', 'PKI', 'SE', 'STI', 'TMK', 'WRK']"
+2017/S1,125,506,482,24,95.3,"['ANTM', 'APC', 'ARNC', 'BHGE', 'BLL', 'CA', 'CBS', 'DISCA', 'DOW', 'FB', 'FBHS', 'FOX', 'FOXA', 'GPS', 'HCP', 'LB', 'MMC', 'MNK', 'MON', 'PKI', 'RE', 'STI', 'TMK', 'WRK']"
+2017/S2,126,505,484,21,95.8,"['ANTM', 'APC', 'ARNC', 'BLL', 'CA', 'CBS', 'DISCA', 'FB', 'FBHS', 'FOX', 'FOXA', 'GPS', 'HCP', 'LB', 'MMC', 'MON', 'PKI', 'RE', 'STI', 'TMK', 'WRK']"
+2018/S1,125,506,485,21,95.8,"['ANTM', 'APC', 'ARNC', 'BLL', 'CA', 'CBS', 'DISCA', 'FB', 'FBHS', 'FOX', 'FOXA', 'GPS', 'HCP', 'KORS', 'LB', 'MMC', 'PKI', 'RE', 'STI', 'TMK', 'WRK']"
+2018/S2,126,505,486,19,96.2,"['ANTM', 'APC', 'ARNC', 'BLL', 'CBS', 'DISCA', 'FB', 'FBHS', 'FOX', 'FOXA', 'GPS', 'HCP', 'LB', 'MMC', 'PKI', 'RE', 'STI', 'TMK', 'WRK']"
+2019/S1,124,505,487,18,96.4,"['ANTM', 'APC', 'ARNC', 'BLL', 'CBS', 'DISCA', 'FB', 'FBHS', 'FRC', 'GPS', 'HCP', 'LB', 'MMC', 'PKI', 'RE', 'STI', 'TMK', 'WRK']"
+2019/S2,128,505,490,15,97.0,"['ANTM', 'ARNC', 'BLL', 'DISCA', 'FB', 'FBHS', 'FRC', 'GPS', 'LB', 'MMC', 'PEAK', 'PKI', 'RE', 'VIAC', 'WRK']"
+2020/S1,125,505,491,14,97.2,"['ANTM', 'BLL', 'DISCA', 'FB', 'FBHS', 'FRC', 'GPS', 'LB', 'MMC', 'PEAK', 'PKI', 'RE', 'VIAC', 'WRK']"
+2020/S2,128,505,491,14,97.2,"['ANTM', 'BLL', 'DISCA', 'FB', 'FBHS', 'FRC', 'GPS', 'LB', 'MMC', 'PEAK', 'PKI', 'RE', 'VIAC', 'WRK']"
+2021/S1,124,505,491,14,97.2,"['ANTM', 'BLL', 'DISCA', 'FB', 'FBHS', 'FRC', 'GPS', 'LB', 'MMC', 'PEAK', 'PKI', 'RE', 'VIAC', 'WRK']"
+2021/S2,128,505,491,14,97.2,"['ANTM', 'BLL', 'CDAY', 'DISCA', 'FB', 'FBHS', 'FRC', 'GPS', 'MMC', 'PEAK', 'PKI', 'RE', 'VIAC', 'WRK']"
+2022/S1,124,503,495,8,98.4,"['CDAY', 'FBHS', 'FRC', 'MMC', 'PEAK', 'PKI', 'RE', 'WRK']"
+2022/S2,127,503,496,7,98.6,"['CDAY', 'FRC', 'MMC', 'PEAK', 'PKI', 'RE', 'WRK']"
+2023/S1,124,503,498,5,99.0,"['CDAY', 'MMC', 'PEAK', 'RE', 'WRK']"
+2023/S2,126,503,499,4,99.2,"['CDAY', 'MMC', 'PEAK', 'WRK']"
+2024/S1,124,503,501,2,99.6,"['MMC', 'WRK']"
+2024/S2,128,503,502,1,99.8,['MMC']
+2025/S1,122,503,502,1,99.8,['MMC']
+2025/S2,127,503,502,1,99.8,['MMC']
