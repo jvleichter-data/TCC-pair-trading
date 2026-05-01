@@ -1,6 +1,6 @@
 # Report de Ausências na Base de Extensão (2016–2025)
 
-Gerado em: 2026-04-26 | Atualizado após tentativa de recuperação via Tiingo
+Gerado em: 2026-04-26 | Atualizado em: 2026-04-29 após recuperação via Financial Data API
 
 ---
 
@@ -12,7 +12,8 @@ Gerado em: 2026-04-26 | Atualizado após tentativa de recuperação via Tiingo
 | **[B]** | 14 | Arquivo existia mas com dados do período errado |
 | **Total com ≥ 1 semestre ausente** | **37** | — |
 | **Recuperados via Tiingo (datas específicas)** | **1** | KORS |
-| **Irrecuperáveis confirmados** | **31** | — |
+| **Recuperados via Financial Data API** | **1** | MMC |
+| **Irrecuperáveis confirmados** | **30** | — |
 | **Lacunas legítimas** | **2** | BHGE, DOW (empresa não existia antes) |
 | **Parciais (dados de período correto incompletos)** | **3** | FOX, FOXA (sem 21CF), IR (sem 2016) |
 
@@ -63,11 +64,12 @@ retorno traga dados da empresa que reciclou o ticker depois.
 
 ## Estado Final de Cada Ticker
 
-### ✅ Recuperado (1)
+### ✅ Recuperado (2)
 
 | Ticker | Empresa original | Dados disponíveis | Semesters cobertos |
 |--------|-----------------|-------------------|-------------------|
-| **KORS** | Michael Kors Holdings | Tiingo: 2015-07-01 → 2017-12-29 | 2016/S1 → 2017/S2 (4 sem. com dado ✅ incorporado na base); 2018/S1 ausente (dado termina dez/2017; índice até set/2018) |
+| **KORS** | Michael Kors Holdings | Tiingo: 2015-07-01 → 2017-12-29 | 2016/S1 → 2017/S2 (4 sem. ✅); 2018/S1 ausente (dado termina dez/2017) |
+| **MMC** | Marsh & McLennan | Financial Data API: 2015-09-04 → 2025-12-31 | 2016/S1 → 2025/S2 (20 sem. ✅ cobertura completa) |
 
 ---
 
@@ -132,7 +134,7 @@ a empresa SÍ existia **entram na base corretamente**.
 | **MNK** | Mallinckrodt Pharmaceuticals | Falência 2020 (opioides) | 2016/S1 → 2017/S1 (3 sem.) |
 | **APC** | Anadarko Petroleum | Adquirida OXY ago/2019 | 2016/S1 → 2019/S1 (7 sem.) |
 
-#### Tiingo Free Tier sem dados — histórico indisponível no plano gratuito (12)
+#### Tiingo Free Tier sem dados — histórico indisponível no plano gratuito (11)
 
 > Todas tentadas com datas específicas (startDate/endDate dentro do período de membership).
 > O Free Tier Tiingo não disponibiliza histórico de empresas delistadas nesse plano.
@@ -145,7 +147,6 @@ a empresa SÍ existia **entram na base corretamente**.
 | **FBHS** | Fortune Brands Home & Security | Renomeou para Fortune Brands Innovations (FBIN) 2022 | 2016/S1 → 2022/S1 (13 sem.) |
 | **FRC** | First Republic Bank | Faliu mai/2023; adquirida JPMorgan | 2019/S1 → 2022/S2 (8 sem.) |
 | **GPS** | The Gap Inc. | Ainda ativa como GPS | 2016/S1 → 2021/S2 (12 sem.) |
-| **MMC** | Marsh & McLennan | Ainda ativa como MMC | 2016/S1 → 2025/S2 (20 sem.) |
 | **PEAK** | Healthpeak Properties | Renomeou para Healthpeak/DOC fev/2024 | 2019/S2 → 2023/S2 (9 sem.) |
 | **PKI** | PerkinElmer | Renomeou para Revvity (RVTY) mar/2023 | 2016/S1 → 2022/S2 (14 sem.) |
 | **RE** | Everest Re Group | Ainda ativa como RE | 2017/S1 → 2023/S1 (13 sem.) |
@@ -159,9 +160,10 @@ a empresa SÍ existia **entram na base corretamente**.
 | Status | Count | Detalhe |
 |--------|-------|---------|
 | ✅ Recuperado (Tiingo) | 1 | KORS — 4 sem. com dado; 1 sem. (2018/S1) ainda ausente |
+| ✅ Recuperado (Financial Data API) | 1 | MMC — cobertura completa 2016/S1 → 2025/S2 |
 | ⚠️ Parcial | 3 | FOX, FOXA (sem 21CF 2016–2018); IR (sem 2016) |
 | 🔵 Lacuna legítima | 2 | BHGE, DOW: empresa não existia no período ausente |
-| ❌ Irrecuperável | 31 | 15 reciclados + 4 API errors + 12 Tiingo sem dados |
+| ❌ Irrecuperável | 30 | 15 reciclados + 4 API errors + 11 Tiingo sem dados |
 | **Total com ≥ 1 semestre ausente** | **37** | — |
 
 ### Cobertura por semestre (medida)
@@ -169,8 +171,21 @@ a empresa SÍ existia **entram na base corretamente**.
 - **Cobertura média extensão (2016–2025)**: **97.4%**
 - **Pior semestre**: 2016/S1 — 93.7% (32 ausentes em ~505 esperados)
 - **Melhor semestre**: 2024/S2 — 99.8% (1 ausente)
-- Os 37 tickers não se distribuem uniformemente: a maioria afeta apenas 1–5 semestres,
-  enquanto MMC (20 sem.) e WRK (17 sem.) respondem por grande parte das ocorrências
+- Os 37 tickers não se distribuem uniformemente: a maioria afeta apenas 1–5 semestres;
+  WRK (17 sem.) é agora a maior ausência restante (MMC recuperado via Financial Data API)
+
+### Recuperação via Financial Data API (2026-04-29)
+
+Fonte: financialdata.net — API com acesso a histórico de tickers ativos.
+
+| Ticker | Tentativa | Resultado |
+|--------|-----------|-----------|
+| **MMC** | 2015-07-01 → 2025-12-31 | ✅ **RECUPERADO** — 2596 linhas (2015-09-04 → 2025-12-31), cobertura total do membership |
+| BLL | 2015-07-01 → 2025-12-31 | ❌ não encontrado na base da API |
+| GPS | 2015-07-01 → 2025-12-31 | ❌ não encontrado na base da API |
+| RE | 2015-07-01 → 2025-12-31 | ❌ não encontrado na base da API |
+| CDAY | 2021-07-01 → 2025-12-31 | ❌ não encontrado na base da API |
+| demais | — | ❌ sem dados (API cobre apenas subset de tickers ativos) |
 
 ### Próximo passo sugerido
 
