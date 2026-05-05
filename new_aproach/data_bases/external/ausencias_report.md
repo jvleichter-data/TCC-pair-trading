@@ -1,8 +1,8 @@
 # Ausências na Base de Extensão S&P 500 (2016–2025)
 
-Atualizado: 2026-05-03
+Atualizado: 2026-05-04
 
-**Cobertura final da extensão: 99.5%** (era 97.4% na coleta original)
+**Cobertura final da extensão: 99.7%** (era 97.4% na coleta original)
 
 ---
 
@@ -12,18 +12,16 @@ Atualizado: 2026-05-03
 
 | Ticker | Empresa | Período ausente | Motivo |
 |--------|---------|-----------------|--------|
-| **VIAC** | ViacomCBS | 2019/S2 → 2021/S2 (5 sem.) | Successor PARA foi privatizado em dez/2024; sem acesso a histórico |
+| **VIAC** | ViacomCBS | 2019/S2 → 2021/S2 (5 sem.) | Successor PARA foi privatizado em dez/2024 |
 | **FRC** | First Republic Bank | 2019/S1 → 2022/S2 (8 sem.) | Falência mai/2023; sem ticker successor com histórico |
-| **CDAY** | Ceridian HCM | 2021/S2 → 2023/S2 (5 sem.) | Renomeou para DAY (Dayforce) em fev/2024; DAY não carrega histórico pré-2024 |
+| **CDAY** | Ceridian HCM | 2021/S2 → 2023/S2 (5 sem.) | Renomeou para DAY em fev/2024; DAY não carrega histórico pré-2024 |
 
-### ⚠️ Parciais — dados incompletos para o período de membership (4 tickers)
+### ⚠️ Parciais — dados incompletos para o período de membership (2 tickers)
 
 | Ticker | O que tem | O que falta |
 |--------|-----------|-------------|
-| **FOX** | Fox Corp (2019-03 → atual) | 21st Century Fox 2016/S1 → 2018/S2 (6 sem.) — entidade corporativa diferente |
-| **FOXA** | Fox Corp (2019-03 → atual) | 21st Century Fox 2016/S1 → 2018/S2 (6 sem.) — entidade corporativa diferente |
-| **IR** | Ingersoll-Rand (2017-05 → atual) | 2016/S1 → 2016/S2 (2 sem.) — ticker reciclado após split em 2020 |
-| **GPS** | The Gap 2015-2019 + 2025 | 2020/S1 → 2021/S2 (4 sem.) — data gap na fonte Twelve Data |
+| **FOX** | 21CF via WIKI (2016-mar/2018) + Fox Corp (2019-03→atual) | 2018/S1 (abr-jun) e 2018/S2 — sem fonte gratuita |
+| **FOXA** | Fox Corp (2019-03 → atual) | 21st Century Fox 2016/S1 → 2018/S2 (6 sem.) — WIKI não tem FOXA classe A |
 
 ### 🔵 Lacunas legítimas — empresa não existia no período (2 tickers)
 
@@ -34,7 +32,7 @@ Atualizado: 2026-05-03
 
 ---
 
-## 2. O que foi recuperado (28 tickers)
+## 2. O que foi recuperado (30 tickers)
 
 | Ticker | Empresa original | Fonte | Ticker usado | Semesters |
 |--------|-----------------|-------|--------------|-----------|
@@ -42,7 +40,6 @@ Atualizado: 2026-05-03
 | MMC | Marsh & McLennan | Financial Data API | MMC | 20 sem. ✅ |
 | APC | Anadarko Petroleum | Twelve Data | APC | 7 sem. ✅ |
 | FBHS | Fortune Brands H&S | Twelve Data | FBHS | 13 sem. ✅ |
-| GPS | The Gap | Twelve Data | GPS | parcial (gap 2020-2021) |
 | RE | Everest Re Group | Yahoo Finance | EG (ticker atual) | 13 sem. ✅ |
 | ANTM | Anthem Inc. | Yahoo Finance | ELV (ticker atual) | 12 sem. ✅ |
 | TMK | Torchmark Corp. | Yahoo Finance | GL (ticker atual) | 7 sem. ✅ |
@@ -57,6 +54,8 @@ Atualizado: 2026-05-03
 | DISCA | Discovery Inc. | Yahoo Finance | WBD (ticker atual) | 12 sem. ✅ |
 | SE | Spectra Energy | Yahoo Finance | ENB (ticker atual) | 2 sem. ✅ |
 | HCP | HCP Inc. | Yahoo Finance | DOC (ticker atual) | 7 sem. ✅ |
+| IR | Ingersoll-Rand | Yahoo Finance | TT (ticker atual) | 2 sem. ✅ |
+| GPS | The Gap Inc. | Yahoo Finance | GAP (ticker atual) | 12 sem. ✅ |
 | MON | Monsanto | NASDAQ Data Link WIKI | MON | 4 sem. ✅ |
 | CA | CA Technologies | NASDAQ Data Link WIKI | CA | 5 sem. ✅ |
 | EMC | EMC Corporation | NASDAQ Data Link WIKI | EMC | 1 sem. ✅ |
@@ -76,10 +75,9 @@ Atualizado: 2026-05-03
 
 | Fonte | Resultado |
 |-------|-----------|
-| **Yahoo Finance** (yfinance API) | ✅ Funcionou para tickers com renomeação (usar ticker atual) |
-| **Yahoo Finance** (website download) | ✅ Usado para BLL manualmente |
+| **Yahoo Finance** (yfinance API) | ✅ Principal fonte — funciona para tickers renomeados via ticker atual |
 | **Tiingo** (free tier) | ✅ Parcial — recuperou KORS; maioria dos históricos indisponível |
-| **Twelve Data** (free tier) | ✅ Parcial — APC, FBHS, GPS; maioria paywall |
+| **Twelve Data** (free tier) | ✅ Parcial — APC, FBHS; maioria paywall |
 | **Financial Data API** (financialdata.net) | ✅ Parcial — funcionou para MMC |
 | **NASDAQ Data Link WIKI** (data.nasdaq.com) | ✅ 10 tickers — endpoint `datatables/WIKI/PRICES` |
 | **Stooq** | ❌ Requer API key via captcha; histórico de delistados ausente |
