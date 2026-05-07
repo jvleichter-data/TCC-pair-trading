@@ -1,38 +1,122 @@
 ticker,status,n_rows,price_from,price_until
-ARNC,deletado_ticker_reciclado,0,—,—
-DISCA,deletado_ticker_reciclado,0,—,—
-DNB,deletado_ticker_reciclado,0,—,—
-DO,deletado_ticker_reciclado,0,—,—
-FTR,deletado_ticker_reciclado,0,—,—
-HCP,deletado_ticker_reciclado,0,—,—
-MON,deletado_ticker_reciclado,0,—,—
+FOX,parcial_sem_21CF,1711,2019-03-13,2025-12-30
+FOXA,parcial_sem_21CF,1712,2019-03-12,2025-12-30
+IR,parcial_sem_2016,2171,2017-05-12,2025-12-30
+DOW,lacuna_legitima,1706,2019-03-20,2025-12-30
+AABA,ok,1076,2015-07-01,2019-11-06
+ABMD,ok,1886,2015-07-01,2023-01-03
+AGN,ok,1223,2015-07-01,2020-05-08
+ALXN,ok,1527,2015-07-01,2021-07-28
+ANSS,ok,2526,2015-07-01,2025-07-17
+ARNC,ok,851,2020-04-01,2023-08-17
+ATVI,ok,2087,2015-07-01,2023-10-13
+BCR,ok,631,2015-07-01,2017-12-29
+BHGE,ok,2136,2017-07-05,2025-12-31
+CELG,ok,1108,2015-07-01,2019-11-22
+CERN,ok,1766,2015-07-01,2022-09-08
+CHK,ok,1427,2015-07-01,2024-10-04
+CMA,ok,2642,2015-07-01,2025-12-31
+CPGX,ok,254,2015-07-01,2016-07-01
+CTL,ok,2642,2015-07-01,2025-12-31
+CTLT,ok,2384,2015-07-01,2024-12-18
+CTXS,ok,1833,2015-07-01,2022-11-02
+CXO,ok,1397,2015-07-01,2021-01-15
+DAY,ok,1932,2018-04-26,2025-12-31
+DFS,ok,2485,2015-07-01,2025-05-16
+DISCA,ok,29,2022-04-06,2022-09-16
+DISCK,ok,1732,2015-07-01,2022-09-16
+DISH,ok,2142,2015-07-01,2024-01-09
+DNB,ok,1294,2020-07-01,2025-08-25
+DO,ok,611,2022-03-30,2024-09-04
+DRE,ok,1828,2015-07-01,2022-10-03
+DWDP,ok,442,2017-08-03,2019-05-31
+ETFC,ok,1325,2015-07-01,2020-10-02
+FI,ok,2642,2015-07-01,2025-12-31
+FL,ok,2561,2015-07-01,2025-09-05
+FLIR,ok,1479,2015-07-01,2021-05-14
+FTR,ok,279,2020-04-23,2021-06-01
+GAS,ok,254,2015-07-01,2016-07-01
+GGP,ok,797,2015-07-01,2018-08-28
+HBI,ok,2621,2015-07-01,2025-12-01
+HCP,ok,807,2021-12-09,2025-02-27
+HES,ok,2527,2015-07-01,2025-07-18
+HRS,ok,2642,2015-07-01,2025-12-31
+IPG,ok,2619,2015-07-01,2025-11-26
+JEC,ok,2642,2015-07-01,2025-12-31
+JNPR,ok,2516,2015-07-01,2025-07-02
+JWN,ok,2487,2015-07-01,2025-05-20
+K,ok,2629,2015-07-01,2025-12-11
+KSU,ok,1626,2015-07-01,2021-12-13
+LLL,ok,1006,2015-07-01,2019-06-28
+LLTC,ok,304,2016-01-04,2017-03-20
+LM,ok,1281,2015-07-01,2020-07-31
+LVLT,ok,591,2015-07-01,2017-11-01
+MJN,ok,512,2015-07-01,2017-07-14
+MON,ok,450,2021-03-16,2022-12-23
+MRO,ok,2367,2015-07-01,2024-11-22
+MXIM,ok,1555,2015-07-01,2021-09-01
+MYL,ok,1357,2015-07-01,2020-11-19
+NBL,ok,1327,2015-07-01,2020-10-06
+NLOK,ok,2642,2015-07-01,2025-12-31
+NLSN,ok,1834,2015-07-01,2022-10-11
+PARA,ok,2541,2015-07-01,2025-08-07
+PBCT,ok,1703,2015-07-01,2022-04-04
+PDCO,ok,2465,2015-07-01,2025-04-17
+PX,ok,841,2015-07-01,2018-10-30
+PXD,ok,2226,2015-07-01,2024-05-03
+RAI,ok,538,2015-07-01,2017-08-17
+RHT,ok,1011,2015-07-01,2019-07-08
+RTN,ok,1199,2015-07-01,2020-04-03
+SIVB,ok,2356,2015-07-01,2024-11-07
+SNI,ok,683,2015-07-01,2018-03-16
+SRCL,ok,2353,2015-07-01,2024-11-04
+STJ,ok,391,2015-07-01,2017-01-18
+SWN,ok,2329,2015-07-01,2024-10-01
+SYMC,ok,2642,2015-07-01,2025-12-31
+TIF,ok,1392,2015-07-01,2021-01-08
+TSS,ok,1061,2015-07-01,2019-09-17
+TWTR,ok,1847,2015-07-01,2022-10-28
+UTX,ok,2642,2015-07-01,2025-12-31
+VAR,ok,1459,2015-07-01,2021-04-16
+VIAB,ok,1116,2015-07-01,2019-12-04
+WBA,ok,2556,2015-07-01,2025-08-28
+WCG,ok,1149,2015-07-01,2020-01-23
+WFM,ok,546,2015-07-01,2017-08-29
+ABC,sem dados,0,—,—
+ADS,sem dados,0,—,—
+APC,sem dados,0,—,—
+BF.B,erro_http_404,0,—,—
+BRK.B,erro_http_404,0,—,—
+CBS,erro_http_404,0,—,—
+COG,sem dados,0,—,—
+ENDP,erro_http_404,0,—,—
+FLT,sem dados,0,—,—
+HFC,erro_http_404,0,—,—
+MNK,erro_http_404,0,—,—
+SPLS,sem dados,0,—,—
+WLTW,sem dados,0,—,—
+WYND,ok,2642,2015-07-01,2025-12-31
+XEC,ok,1577,2015-07-01,2021-10-04
+XL,ok,808,2015-07-01,2018-09-13
+XLNX,ok,1669,2015-07-01,2022-02-14
+ANTM,sem dados yahoo,0,—,—
+BLL,sem dados yahoo,0,—,—
+CDAY,sem dados yahoo,0,—,—
+FBHS,sem dados yahoo,0,—,—
+FRC,sem dados yahoo,0,—,—
+GPS,sem dados yahoo,0,—,—
+MMC,sem dados yahoo,0,—,—
+PEAK,sem dados yahoo,0,—,—
+PKI,sem dados yahoo,0,—,—
+RE,sem dados yahoo,0,—,—
+TMK,sem dados yahoo,0,—,—
+WRK,sem dados yahoo,0,—,—
 CA,deletado_ticker_reciclado,0,—,—
 EMC,deletado_ticker_reciclado,0,—,—
 FB,deletado_ticker_reciclado,0,—,—
+KORS,deletado_ticker_reciclado,0,—,—
 LB,deletado_ticker_reciclado,0,—,—
 SE,deletado_ticker_reciclado,0,—,—
 STI,deletado_ticker_reciclado,0,—,—
 TE,deletado_ticker_reciclado,0,—,—
 VIAC,deletado_ticker_reciclado,0,—,—
-APC,irrecuperavel,0,—,—
-CBS,irrecuperavel,0,—,—
-ENDP,irrecuperavel,0,—,—
-MNK,irrecuperavel,0,—,—
-ANTM,irrecuperavel,0,—,—
-BLL,irrecuperavel,0,—,—
-CDAY,irrecuperavel,0,—,—
-FBHS,irrecuperavel,0,—,—
-FRC,irrecuperavel,0,—,—
-GPS,irrecuperavel,0,—,—
-MMC,irrecuperavel,0,—,—
-PEAK,irrecuperavel,0,—,—
-PKI,irrecuperavel,0,—,—
-RE,irrecuperavel,0,—,—
-TMK,irrecuperavel,0,—,—
-WRK,irrecuperavel,0,—,—
-KORS,ok_tiingo,631,2015-07-01,2017-12-29
-FOX,parcial_sem_21CF,1711,2019-03-13,2025-12-30
-FOXA,parcial_sem_21CF,1712,2019-03-12,2025-12-30
-IR,parcial_sem_2016,2171,2017-05-12,2025-12-30
-BHGE,lacuna_legitima,500,2017-07-05,2019-06-28
-DOW,lacuna_legitima,1706,2019-03-20,2025-12-30

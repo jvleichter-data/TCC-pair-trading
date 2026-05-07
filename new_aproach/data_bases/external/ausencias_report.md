@@ -2,7 +2,7 @@
 
 Atualizado: 2026-05-04
 
-**Cobertura final da extensão: 99.7%** (era 97.4% na coleta original)
+**Cobertura final da extensão: 99.7%+** (a recalcular — FRC recuperado via FRCB)
 
 ---
 
@@ -13,7 +13,6 @@ Atualizado: 2026-05-04
 | Ticker | Empresa | Período ausente | Motivo |
 |--------|---------|-----------------|--------|
 | **VIAC** | ViacomCBS | 2019/S2 → 2021/S2 (5 sem.) | Successor PARA foi privatizado em dez/2024 |
-| **FRC** | First Republic Bank | 2019/S1 → 2022/S2 (8 sem.) | Falência mai/2023; sem ticker successor com histórico |
 | **CDAY** | Ceridian HCM | 2021/S2 → 2023/S2 (5 sem.) | Renomeou para DAY em fev/2024; DAY não carrega histórico pré-2024 |
 
 ### ⚠️ Parciais — dados incompletos para o período de membership (2 tickers)
@@ -32,7 +31,7 @@ Atualizado: 2026-05-04
 
 ---
 
-## 2. O que foi recuperado (30 tickers)
+## 2. O que foi recuperado (31 tickers)
 
 | Ticker | Empresa original | Fonte | Ticker usado | Semesters |
 |--------|-----------------|-------|--------------|-----------|
@@ -56,6 +55,7 @@ Atualizado: 2026-05-04
 | HCP | HCP Inc. | Yahoo Finance | DOC (ticker atual) | 7 sem. ✅ |
 | IR | Ingersoll-Rand | Yahoo Finance | TT (ticker atual) | 2 sem. ✅ |
 | GPS | The Gap Inc. | Yahoo Finance | GAP (ticker atual) | 12 sem. ✅ |
+| FRC | First Republic Bank | Yahoo Finance | FRCB (ticker pós-falência) | 8 sem. ✅ |
 | MON | Monsanto | NASDAQ Data Link WIKI | MON | 4 sem. ✅ |
 | CA | CA Technologies | NASDAQ Data Link WIKI | CA | 5 sem. ✅ |
 | EMC | EMC Corporation | NASDAQ Data Link WIKI | EMC | 1 sem. ✅ |
