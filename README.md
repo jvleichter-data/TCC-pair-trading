@@ -15,9 +15,9 @@ A estratégia opera em duas fases que se alternam semestralmente:
 | **Formação** | 12 meses (2 semestres) | Normaliza preços, calcula SSD entre todos os pares e seleciona os top-20 de menor distância |
 | **Negociação** | 6 meses (1 semestre) | Monitora o spread dos pares formados; abre posição quando spread > 2σ, fecha na reversão |
 
-**Normalização:** $Q_i(t) = P_i(t) / P_i(0)$ — todos os ativos partem de 1 no início de cada janela de formação, tornando os preços comparáveis independentemente do nível absoluto.
+**Normalização:** $Q_i(t) = P_i(t) / P_i(0)$ — todos os ativos partem de 1 no início de cada janela de formação.
 
-**Distância SSD:** $D(i,j) = \sum_{t=1}^{T} [Q_i(t) - Q_j(t)]^2$ — mede a área quadrática acumulada entre as duas trajetórias normalizadas.
+**Distância SSD:** $D(i,j) = \sum_{t=1}^{T} [Q_i(t) - Q_j(t)]^2$ — área quadrática acumulada entre as duas trajetórias normalizadas.
 
 ---
 
@@ -26,145 +26,152 @@ A estratégia opera em duas fases que se alternam semestralmente:
 ```
 TCC-pair-trading/
 └── new_aproach/
-    ├── src/                        # Notebooks de análise
-    │   ├── pipeline_base.ipynb
-    │   ├── validacao_dados.ipynb
-    │   ├── cobertura_base.ipynb
-    │   └── pairs_formation.ipynb
-    ├── data_bases/                 # Dados processados
-    │   ├── base_completa.csv
-    │   ├── extensao_2016_2025.csv
-    │   ├── professor_consolidado.csv
-    │   ├── pares_formados.csv
-    │   ├── prices/                 # Séries diárias Yahoo Finance (601 tickers)
-    │   ├── prices_tiingo/          # Séries diárias Tiingo API (86 tickers)
-    │   ├── professor/              # Base original do orientador (1990–2015)
-    │   └── external/               # Composição histórica S&P 500 e reports
-    └── markdowns/                  # Documentação técnica
-        ├── gatev_pairs_theory.md
-        └── ssd_matrix_computation.md
+    ├── src/                          # Notebooks (executar nesta ordem)
+    │   ├── pipeline_base.ipynb       # 1. Constrói base_completa.csv
+    │   ├── gathering.ipynb           # 2. Recupera tickers delistados/renomeados
+    │   ├── cobertura_base.ipynb      # 3. Valida cobertura por semestre
+    │   ├── analise_fronteira.ipynb   # 4. Análise de qualidade na fronteira professor/extensão
+    │   ├── validacao_dados.ipynb     # (auxiliar) Valida tickers com problema na coleta
+    │   ├── validacao_tipo_preco.ipynb# (auxiliar) Confirma tipo de preço da base do professor
+    │   └── pairs_formation.ipynb     # 5. Formação de pares e seleção top-20
+    │
+    ├── data_bases/
+    │   ├── base_completa.csv              # Base unificada 1990–2025 (~60 MB)
+    │   ├── extensao_2016_2025.csv         # Extensão coletada 2016–2025 (~20 MB)
+    │   ├── professor_consolidado.csv      # Base original do orientador 1990–2015 (~36 MB)
+    │   ├── prices/                        # Séries diárias Yahoo Finance adj_close
+    │   ├── prices_tiingo/                 # Séries diárias Tiingo adj_close (delistados)
+    │   ├── professor/                     # Arquivos originais do orientador
+    │   └── external/                      # Metadados e relatórios
+    │       ├── sp500_historico.csv        # Composição diária S&P 500 (1996–2026)
+    │       ├── coleta_report.csv          # Status de coleta de cada ticker
+    │       ├── analise_fronteira.csv      # Saltos na fronteira dez/2015→jan/2016
+    │       ├── sobreposicao_2015_tabela.csv # Consistência adj_close na sobreposição 2015
+    │       ├── outliers_report.md         # Documentação de todos os outliers >30% da base
+    │       └── ausencias_report.md        # Detalhamento de tickers irrecuperáveis
+    │
+    └── markdowns/                         # Documentação matemática
+        ├── gatev_pairs_theory.md          # Fundamentos do método Gatev et al.
+        └── ssd_matrix_computation.md      # Derivação da implementação matricial da SSD
 ```
 
 ---
 
-## Dados
+## Bases de dados
 
-### Base de preços
+### Arquivos principais
 
-| Arquivo | Período | Dias | Tickers únicos | Tamanho |
-|---------|---------|------|----------------|---------|
-| `professor_consolidado.csv` | 1990/S2 – 2015/S2 | 6 425 | 1 100 | 36 MB |
-| `extensao_2016_2025.csv` | 2016/S1 – 2025/S2 | 2 513 | 708 | 20 MB |
-| `base_completa.csv` | 1990/S2 – 2025/S2 | 8 938 | 1 343 | 60 MB |
+| Arquivo | Período | Tickers únicos | Descrição |
+|---------|---------|----------------|-----------|
+| `professor_consolidado.csv` | 1990/S2 – 2015/S2 | ~1 100 | Base original do orientador, adj_close coletado em ~dez/2015 |
+| `extensao_2016_2025.csv` | 2016/S1 – 2025/S2 | ~708 | Extensão coletada em 2026 via Yahoo/Tiingo, adj_close_2026 |
+| `base_completa.csv` | 1990/S2 – 2025/S2 | ~1 343 | Concatenação das duas bases acima |
 
-- **Tipo de preço:** Close sem dividendos (split-adjusted) — equivalente ao `Close` do Yahoo Finance com `auto_adjust=False` e ao `close` do Tiingo
-- **Calendário:** dias reais de pregão NYSE (extraído do histórico MSFT via Yahoo)
-- **Membership mask:** cada ticker recebe `NaN` nos semestres em que não integrava o S&P 500
-
-### Composição histórica (`external/sp500_historico.csv`)
-
-Snapshots diários da composição do S&P 500 de 1996 a 2026, usados para:
-- Filtrar quais tickers estavam no índice em cada semestre
-- Validar cobertura da base
+> **Tipo de preço:** `adj_close` (Yahoo Finance `auto_adjust=True` / Tiingo `adjClose`). A base do professor também usa adj_close, conforme confirmado em `validacao_tipo_preco.ipynb`. Cada ticker recebe `NaN` nos semestres em que não integrava o S&P 500.
+> **Fronteira:** por terem datas de normalização diferentes (~2015 vs 2026), os adj_close das duas bases não se concatenam diretamente — a análise quantitativa dessa descontinuidade está em `analise_fronteira.csv` e `sobreposicao_2015_tabela.csv`.
 
 ### Preços brutos
 
-| Pasta | Fonte | Tickers | Uso |
-|-------|-------|---------|-----|
-| `prices/` | Yahoo Finance (`yfinance`) | 601 | Coleta principal 2015–2025 |
-| `prices_tiingo/` | Tiingo API | 86 | Tickers delistados/renomeados com histórico recuperado |
+| Pasta | Fonte | Uso |
+|-------|-------|-----|
+| `prices/` | Yahoo Finance (`auto_adjust=True`) | Coleta principal 2015–2025 |
+| `prices_tiingo/` | Tiingo API (`adjClose`) | Tickers delistados, renomeados ou com cobertura incompleta no Yahoo |
 
-### Pares formados (`pares_formados.csv`)
+### Composição histórica
 
-Resultado da fase de formação: 69 janelas × 20 pares = **1 380 registros**.
-
-Colunas: `janela`, `formacao_inicio`, `formacao_fim`, `negociacao`, `rank`, `ativo1`, `ativo2`, `ssd`, `spread_media`, `spread_desvio`
+`external/sp500_historico.csv` — snapshots diários da composição do S&P 500 de 1996 a 2026. Cada linha é uma data com a lista de tickers membros naquele dia. Usado para aplicar a membership mask na extensão.
 
 ---
 
 ## Notebooks
 
-### `pipeline_base.ipynb`
+### `pipeline_base.ipynb` — Construção da base
 
-Constrói a base de dados completa em 7 partes:
+Constrói `extensao_2016_2025.csv` e `base_completa.csv` em 7 partes:
 
 | Parte | O que faz |
 |-------|-----------|
-| 1 | Consolida base do orientador — alinha datas reais NYSE via correlação com MSFT Yahoo |
-| 2 | Confirma tipo de preço: Close sem dividendos (ratio professor/Yahoo = 1.0000) |
-| 3 | Carrega composição S&P 500 e lista tickers necessários (2016–2025) |
-| 4 | Verifica quais preços já foram baixados (checkpoint) |
-| 5 | Baixa preços faltantes do Yahoo Finance |
-| 6 | Constrói `extensao_2016_2025.csv` com membership mask aplicada |
+| 1 | Consolida base do orientador — alinha datas reais de pregão NYSE via MSFT |
+| 2 | Confirma tipo de preço da base do professor (adj_close) |
+| 3 | Carrega composição histórica e lista tickers necessários (2016–2025) |
+| 4 | Checkpoint — identifica tickers já coletados |
+| 5 | Baixa adj_close faltante do Yahoo Finance (`auto_adjust=True`) |
+| 6 | Constrói `extensao_2016_2025.csv` com membership mask |
 | 7 | Concatena professor + extensão em `base_completa.csv` |
 
-### `validacao_dados.ipynb`
+### `gathering.ipynb` — Recuperação de tickers problemáticos
 
-Valida cobertura dos tickers com problema na coleta original. Em 10 partes:
+Tickers que o Yahoo não cobre diretamente (delistados, empresas renomeadas, histórico pré-2016) são recuperados aqui usando múltiplas fontes: NASDAQ Data Link WIKI, Tiingo, Financial Data API e FMP. O notebook organiza a coleta em partes (A–J), cada uma focada em um grupo de casos específico, e salva o resultado direto em `prices/` ou `prices_tiingo/`.
 
-- Identifica quando cada ticker estava no S&P 500 e se os dados cobrem esse período
-- Tenta recuperar histórico via Tiingo API com datas específicas de membership
-- Deleta arquivos de tickers reciclados (dados de outra empresa)
-- Gera `coleta_report_validacao.csv` com status final de cada ticker
+Exemplos de casos tratados: CBS→VIAC, FOX/FOXA (21st Century Fox), CDAY→DAY, IR→TT, BHI/BHGE, GPS→GAP, entre outros.
 
-### `cobertura_base.ipynb`
+### `cobertura_base.ipynb` — Validação de cobertura
 
-Valida a base gerada cruzando com a composição histórica do S&P 500:
+Cruza a extensão gerada com o `sp500_historico.csv` e calcula, semestre a semestre, quantos tickers esperados têm dados presentes. Gera `tickers_ausentes.csv` e imprime relatório de cobertura. Cobertura final: **~100%** (apenas ausências estruturais documentadas permanecem).
 
-- Cobertura por semestre (% de tickers esperados com dados presentes)
-- Lista de tickers cronicamente ausentes
-- Cruzamento com `coleta_report_validacao.csv` para classificar cada ausência
+### `analise_fronteira.ipynb` — Qualidade na fronteira e sobreposição 2015
 
-### `pairs_formation.ipynb`
+Dois tipos de análise sem chamadas externas de API:
+
+**Parte 1 — Fronteira dez/2015 → jan/2016:**
+Para cada ticker na interseção professor ∩ extensão, calcula o salto percentual `(ext[jan/4] / prof[dez/30] - 1)`. Quantifica a descontinuidade artificial causada pelas diferentes datas de normalização das duas bases. Resultado em `analise_fronteira.csv`.
+
+**Parte 2 — Sobreposição 2015:**
+Coleta adj_close de 2015 para todos os tickers da interseção e calcula o ratio `nosso_adj_close / prof_adj_close` para cada data. Se o ratio for constante (CV ≈ 0%), confirma que ambas as séries são adj_close com a mesma estrutura, apenas com bases de normalização diferentes. Resultado em `sobreposicao_2015_tabela.csv`.
+
+### `pairs_formation.ipynb` — Formação de pares
 
 Implementa a fase de formação do método Gatev et al.:
 
-- Janelas rolantes de 12 meses, avançando 6 meses por vez (69 janelas no total)
-- Filtra tickers com dados completos no período
-- Calcula SSD via álgebra matricial (`Q.T @ Q`) sem loops — ordens de magnitude mais rápido
+- 69 janelas rolantes de 12 meses, avançando 6 meses por vez (1990/S2 – 2025/S2)
+- Filtra tickers com dados completos na janela de formação
+- Normaliza preços e calcula SSD via álgebra matricial sem loops (`norms[:, None] + norms[None, :] - 2 * G`)
 - Seleciona top-20 pares por janela e calcula estatísticas do spread
-- Visualiza trajetórias normalizadas e spread para janelas representativas
+- Salva resultado em `pares_formados.csv`
 
 ---
 
-## Cobertura da base (2016–2025)
+## Qualidade dos dados
+
+Todos os outliers de retorno diário > 30% na extensão foram revisados e documentados em [`data_bases/external/outliers_report.md`](new_aproach/data_bases/external/outliers_report.md).
+
+**87 outliers identificados em 63 tickers** — todos em datas consecutivas de pregão. Nenhum é erro de dado. Classificação:
+
+- **Eventos macroeconômicos:** crash do petróleo mar/2020 (10), COVID crash + rally (24), vacina Pfizer nov/2020 (8)
+- **Eventos corporativos:** M&A (5), PG&E/falência (2), SMCI/fraude contábil (4)
+- **Earnings extremos:** Netflix, Paycom, DexCom, Biogen/FDA, entre outros (17)
+- **Limitações intrínsecas:** BHGE merger BHI→GE (2) e XRX spinoff Conduent (1) — documentados
+
+Correções aplicadas durante a análise: COL, HAR, CHK (reverse split falência), IR, NKTR, DHR (Tiingo adjClose para spinoff Fortive), XRX, FSLR, KDP, FISV, PCG.
+
+---
+
+## Cobertura da extensão (2016–2025)
 
 | Métrica | Valor |
 |---------|-------|
-| Cobertura média | 97.4% |
-| Pior semestre | 2016/S1 — 93.9% |
-| Melhor semestre | 2024/S2 — 99.8% |
-| Tickers com ≥ 1 semestre ausente | 37 |
-| Irrecuperáveis (falência, reciclagem) | 31 |
-| Ausências legítimas (empresa não existia) | 2 (BHGE, DOW) |
-| Parciais (dados incompletos no período) | 4 (FOX, FOXA, IR, KORS) |
+| Cobertura geral | ~100% |
+| Ausências estruturais | VIAC (privatizada), CDAY (2 janelas sem dados) |
+| Ausências legítimas | BHGE 2016/S1–2017/S1 (empresa não existia); DOW 2016–mar/2019 (era DowDuPont/DWDP) |
 
 Detalhamento completo em [`data_bases/external/ausencias_report.md`](new_aproach/data_bases/external/ausencias_report.md).
 
 ---
 
-## Documentação técnica
-
-| Arquivo | Conteúdo |
-|---------|---------|
-| [`markdowns/gatev_pairs_theory.md`](new_aproach/markdowns/gatev_pairs_theory.md) | Fundamentos matemáticos do método — normalização, SSD, spread, sinais de entrada/saída |
-| [`markdowns/ssd_matrix_computation.md`](new_aproach/markdowns/ssd_matrix_computation.md) | Derivação da implementação matricial da SSD — da fórmula à operação `norms[:, None] + norms[None, :] - 2 * G` |
-
----
-
 ## Como reproduzir
 
-Execute os notebooks na ordem abaixo a partir de `new_aproach/src/`:
-
 ```
-1. pipeline_base.ipynb       → gera base_completa.csv
-2. validacao_dados.ipynb     → valida e recupera tickers problemáticos
-3. cobertura_base.ipynb      → valida cobertura por semestre
-4. pairs_formation.ipynb     → seleciona pares e salva pares_formados.csv
+1. pipeline_base.ipynb        → gera extensao_2016_2025.csv e base_completa.csv
+2. gathering.ipynb             → recupera tickers problemáticos (rodar partes A–J)
+3. cobertura_base.ipynb        → valida cobertura e gera tickers_ausentes.csv
+4. analise_fronteira.ipynb     → analisa qualidade na fronteira e sobreposição 2015
+5. pairs_formation.ipynb       → seleciona pares e salva pares_formados.csv
 ```
 
 **Dependências:** `pandas`, `numpy`, `yfinance`, `requests`, `matplotlib`
 
 **APIs utilizadas:**
 - Yahoo Finance via `yfinance` (coleta principal)
-- [Tiingo](https://api.tiingo.com/) (recuperação de histórico de delistados — requer token)
+- [Tiingo](https://api.tiingo.com/) (delistados — requer token gratuito)
+- [NASDAQ Data Link WIKI](https://data.nasdaq.com/) (histórico pré-2018 — requer token gratuito)
+- Financial Modeling Prep / Financial Data API (recuperação pontual)
