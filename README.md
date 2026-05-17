@@ -151,10 +151,8 @@ Correções aplicadas durante a análise: COL, HAR, CHK (reverse split falência
 | Métrica | Valor |
 |---------|-------|
 | Cobertura geral | ~100% |
-| Ausências estruturais | VIAC (privatizada), CDAY (2 janelas sem dados) |
-| Ausências legítimas | BHGE 2016/S1–2017/S1 (empresa não existia); DOW 2016–mar/2019 (era DowDuPont/DWDP) |
-
-Detalhamento completo em [`data_bases/external/ausencias_report.md`](new_aproach/data_bases/external/ausencias_report.md).
+| Ausência parcial | VIAC: cobre dez/2019–dez/2021 (faltam ~6 semanas até fev/2022, data de privatização) |
+| Ausências legítimas | BHGE: sem dados 2016/S1–2017/S1 (empresa só existiu a partir de jul/2017); DOW: sem dados 2016–mar/2019 (era DowDuPont/DWDP, ticker diferente) |
 
 ---
 
