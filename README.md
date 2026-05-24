@@ -31,12 +31,15 @@ TCC-pair-trading/
     │   ├── gathering.ipynb           # 2. Recupera tickers delistados/renomeados
     │   ├── cobertura_base.ipynb      # 3. Valida cobertura por semestre
     │   ├── analise_fronteira.ipynb   # 4. Análise de qualidade na fronteira professor/extensão
+    │   ├── base_unificada.ipynb      # 5. Reconstrói base corrigindo fronteira por retornos
     │   ├── validacao_dados.ipynb     # (auxiliar) Valida tickers com problema na coleta
     │   ├── validacao_tipo_preco.ipynb# (auxiliar) Confirma tipo de preço da base do professor
-    │   └── pairs_formation.ipynb     # 5. Formação de pares e seleção top-20
+    │   ├── pairs_formation.ipynb     # 6. Formação de pares e seleção top-20
+    │   └── pairs_trading.ipynb       # 7. Negociação e análise de resultados
     │
     ├── data_bases/
-    │   ├── base_completa.csv              # Base unificada 1990–2025 (~60 MB)
+    │   ├── base_unificada.csv             # Base reconstruída por retornos 1990–2025 (~62 MB) ← usar esta
+    │   ├── base_completa.csv              # Base concatenada diretamente 1990–2025 (~60 MB)
     │   ├── extensao_2016_2025.csv         # Extensão coletada 2016–2025 (~20 MB)
     │   ├── professor_consolidado.csv      # Base original do orientador 1990–2015 (~36 MB)
     │   ├── prices/                        # Séries diárias Yahoo Finance adj_close
@@ -65,10 +68,12 @@ TCC-pair-trading/
 |---------|---------|----------------|-----------|
 | `professor_consolidado.csv` | 1990/S2 – 2015/S2 | ~1 100 | Base original do orientador, adj_close coletado em ~dez/2015 |
 | `extensao_2016_2025.csv` | 2016/S1 – 2025/S2 | ~708 | Extensão coletada em 2026 via Yahoo/Tiingo, adj_close_2026 |
-| `base_completa.csv` | 1990/S2 – 2025/S2 | ~1 343 | Concatenação das duas bases acima |
+| `base_completa.csv` | 1990/S2 – 2025/S2 | ~1 343 | Concatenação direta das duas bases (descontinuidade na fronteira) |
+| **`base_unificada.csv`** | 1990/S2 – 2025/S2 | ~1 343 | **Base recomendada** — extensão reconstruída por retornos, sem salto na fronteira |
 
 > **Tipo de preço:** `adj_close` (Yahoo Finance `auto_adjust=True` / Tiingo `adjClose`). A base do professor também usa adj_close, conforme confirmado em `validacao_tipo_preco.ipynb`. Cada ticker recebe `NaN` nos semestres em que não integrava o S&P 500.
-> **Fronteira:** por terem datas de normalização diferentes (~2015 vs 2026), os adj_close das duas bases não se concatenam diretamente — a análise quantitativa dessa descontinuidade está em `analise_fronteira.csv` e `sobreposicao_2015_tabela.csv`.
+>
+> **Fronteira 2015/S2 → 2016/S1:** as duas bases têm datas de normalização diferentes (~2015 vs 2026). Um split ocorrido nesse período (ex: split 4-for-1 da AAPL em 2020) faz o adj_close da extensão diferir por um fator constante do professor. `base_unificada.csv` corrige isso reconstruindo a extensão via retornos: $P_{\text{uni}}(t) = P_{\text{prof}}(t_{\text{fim}}) \times P_{\text{ext}}(t) / P_{\text{ext}}(t_0)$, preservando todos os retornos diários e eliminando o salto artificial. Correlação de retornos entre original e reconstruído: 1.0000000000.
 
 ### Preços brutos
 
@@ -119,6 +124,14 @@ Para cada ticker na interseção professor ∩ extensão, calcula o salto percen
 **Parte 2 — Sobreposição 2015:**
 Coleta adj_close de 2015 para todos os tickers da interseção e calcula o ratio `nosso_adj_close / prof_adj_close` para cada data. Se o ratio for constante (CV ≈ 0%), confirma que ambas as séries são adj_close com a mesma estrutura, apenas com bases de normalização diferentes. Resultado em `sobreposicao_2015_tabela.csv`.
 
+### `base_unificada.ipynb` — Correção da fronteira
+
+Resolve a descontinuidade de adj_close na fronteira 2015/S2 → 2016/S1: as duas bases foram coletadas em datas diferentes (~2015 e ~2026), de modo que splits ocorridos no intervalo (ex: AAPL 4:1 em 2020) introduzem um fator constante de escala. A correção reconstrói a extensão via retornos diários ancorados no último preço da base do professor:
+
+$$P_{\text{uni}}(t) = P_{\text{prof}}(t_{\text{fim}}) \times \frac{P_{\text{ext}}(t)}{P_{\text{ext}}(t_0)}$$
+
+Isso preserva todos os retornos diários da extensão intactos (correlação = 1.0000000000) e elimina o salto artificial. Saída: `base_unificada.csv`.
+
 ### `pairs_formation.ipynb` — Formação de pares
 
 Implementa a fase de formação do método Gatev et al.:
@@ -128,6 +141,16 @@ Implementa a fase de formação do método Gatev et al.:
 - Normaliza preços e calcula SSD via álgebra matricial sem loops (`norms[:, None] + norms[None, :] - 2 * G`)
 - Seleciona top-20 pares por janela e calcula estatísticas do spread
 - Salva resultado em `pares_formados.csv`
+
+### `pairs_trading.ipynb` — Negociação
+
+Simula a fase de negociação sobre os pares selecionados:
+
+- Estratégia: entra quando |z| > δ=2, fecha na reversão (z=0), stop-loss em |z| > 4
+- **Lag de posição:** decisão tomada no fechamento do dia t → execução a partir de t+1 (`np.roll(positions, 1)`). Correto pela convenção de mercado: não é possível negociar no mesmo instante da observação do sinal.
+- **Capital comprometido (Gatev):** todos os N pares entram no denominador do portfólio, mesmo os inativos. Isso dilui o retorno nos períodos sem posição — metodologia fiel ao artigo original.
+- **Filtro de outliers:** pares com retorno diário máximo > 30% são descartados (identifica penny stocks OTC com preços corrompidos na base, ex: AVATQ ~$0,0001).
+- Saídas: `negociacao_pares.csv` (resultado por par) e `negociacao_portfolio.csv` (série temporal do portfólio)
 
 ---
 
@@ -163,7 +186,9 @@ Correções aplicadas durante a análise: COL, HAR, CHK (reverse split falência
 2. gathering.ipynb             → recupera tickers problemáticos (rodar partes A–J)
 3. cobertura_base.ipynb        → valida cobertura e gera tickers_ausentes.csv
 4. analise_fronteira.ipynb     → analisa qualidade na fronteira e sobreposição 2015
-5. pairs_formation.ipynb       → seleciona pares e salva pares_formados.csv
+5. base_unificada.ipynb        → corrige fronteira por retornos e gera base_unificada.csv
+6. pairs_formation.ipynb       → seleciona pares e salva pares_formados.csv
+7. pairs_trading.ipynb         → simula negociação e gera negociacao_pares.csv / negociacao_portfolio.csv
 ```
 
 **Dependências:** `pandas`, `numpy`, `yfinance`, `requests`, `matplotlib`
