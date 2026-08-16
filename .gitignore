@@ -6,3 +6,13 @@ __pycache__/
 # Dados legados (substituídos por adj_close)
 new_aproach/data_bases/prices_close/
 new_aproach/data_bases/prices_tiingo_close/
+
+# Artigos de referência (material com copyright — manter apenas local)
+new_aproach/articles/
+
+# Bases grandes (~189 MB): removidas do repositório, regeneráveis pelo pipeline.
+# Continuam no disco local — sem elas os notebooks não rodam.
+new_aproach/data_bases/base_completa.csv
+new_aproach/data_bases/base_unificada.csv
+new_aproach/data_bases/extensao_2016_2025.csv
+new_aproach/data_bases/professor_consolidado.csv

@@ -136,7 +136,7 @@ Isso preserva todos os retornos diários da extensão intactos (correlação = 1
 
 Implementa a fase de formação do método Gatev et al.:
 
-- 69 janelas rolantes de 12 meses, avançando 6 meses por vez (1990/S2 – 2025/S2)
+- Janelas rolantes definidas em meses calendário, com os **mesmos parâmetros do método da cointegração** (`MESES_FORMACAO=12`, `MESES_NEGOCIACAO=6`, `PASSO_MESES`) para permitir comparação direta entre as metodologias. Com `PASSO_MESES=6` são 69 janelas (ritmo original de Gatev); com `PASSO_MESES=1`, ~400 janelas (Rad et al.)
 - Filtra tickers com dados completos na janela de formação
 - Normaliza preços e calcula SSD via álgebra matricial sem loops (`norms[:, None] + norms[None, :] - 2 * G`)
 - Seleciona top-20 pares por janela e calcula estatísticas do spread
@@ -187,9 +187,12 @@ Correções aplicadas durante a análise: COL, HAR, CHK (reverse split falência
 3. cobertura_base.ipynb        → valida cobertura e gera tickers_ausentes.csv
 4. analise_fronteira.ipynb     → analisa qualidade na fronteira e sobreposição 2015
 5. base_unificada.ipynb        → corrige fronteira por retornos e gera base_unificada.csv
-6. pairs_formation.ipynb       → seleciona pares e salva pares_formados.csv
-7. pairs_trading.ipynb         → simula negociação e gera negociacao_pares.csv / negociacao_portfolio.csv
+6. serie_rf.ipynb              → emenda a renda fixa do professor com a T-bill do FRED → rf_diario.csv
+7. pairs_formation.ipynb       → seleciona pares e salva pares_formados.csv
+8. pairs_trading.ipynb         → simula negociação e gera negociacao_pares.csv / negociacao_portfolio.csv
 ```
+
+> ⚠️ `data_bases/prices/RF.csv` **não é renda fixa** — é a ação *Regions Financial* (ticker `RF`, constituinte do S&P 500). A taxa livre de risco vem de `professor/Rf.csv`, estendida por `serie_rf.ipynb`.
 
 **Dependências:** `pandas`, `numpy`, `yfinance`, `requests`, `matplotlib`
 
