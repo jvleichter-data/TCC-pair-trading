@@ -16,3 +16,17 @@ new_aproach/data_bases/base_completa.csv
 new_aproach/data_bases/base_unificada.csv
 new_aproach/data_bases/extensao_2016_2025.csv
 new_aproach/data_bases/professor_consolidado.csv
+
+# Backups locais (snapshots PRE_*/ .bak movidos para cá) — nunca versionar
+_backups/
+
+# Investigação e validação: muita coisa em fluxo, e os CSVs são regeneráveis
+# pelo pipeline. Mantido só local por enquanto.
+new_aproach/src/validation/
+
+# Painel gerado: reconstruível com src/visualization/construir_html.py
+new_aproach/src/visualization/resultados_consolidado.html
+
+# Versão em R: a base de preços (~55 MB) fica fora do repositório e é enviada à parte;
+# o rf_diario.csv (pequeno) e o README da pasta entram.
+R/data_bases/base_unificada.csv

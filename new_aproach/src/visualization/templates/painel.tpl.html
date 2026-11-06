@@ -1,0 +1,1010 @@
+<meta charset="utf-8">
+<title>Backtests de Pares</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f1f0ec; --surface:#fbfaf7; --surface-2:#eae8e2; --surface-3:#e2dfd7;
+  --ink:#15171b; --ink-2:#555963; --ink-3:#8a8e97;
+  --line:#dbd9d2; --line-2:#c5c2b9;
+  --accent:#1c5cab; --accent-2:#2a78d6; --on-accent:#ffffff;
+  --heat:#2a78d6;
+  --good:#0ca30c; --crit:#d03b3b;
+  --s-distancia:#2a78d6; --s-distancia_din:#eb6834;
+  --s-cointegracao:#1baf7a; --s-cointegracao_din:#eda100;
+  --s-np:#8a4fd1;
+  --ring:0 0 0 3px rgba(42,120,214,.28);
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --disp:"Archivo","IBM Plex Sans",-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --lw:250px; --vw:84px; --cgap:14px;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#121317; --surface:#1a1c20; --surface-2:#22252a; --surface-3:#2a2e34;
+  --ink:#f0efeb; --ink-2:#a4a9b2; --ink-3:#737982;
+  --line:#2b2e34; --line-2:#3b3f47;
+  --accent:#3987e5; --accent-2:#5598e7; --on-accent:#0b1220;
+  --heat:#3987e5;
+  --s-distancia:#3987e5; --s-distancia_din:#d95926;
+  --s-cointegracao:#199e70; --s-cointegracao_din:#c98500;
+  --s-np:#a77de6;
+  --ring:0 0 0 3px rgba(57,135,229,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#121317; --surface:#1a1c20; --surface-2:#22252a; --surface-3:#2a2e34;
+  --ink:#f0efeb; --ink-2:#a4a9b2; --ink-3:#737982;
+  --line:#2b2e34; --line-2:#3b3f47;
+  --accent:#3987e5; --accent-2:#5598e7; --on-accent:#0b1220;
+  --heat:#3987e5;
+  --s-distancia:#3987e5; --s-distancia_din:#d95926;
+  --s-cointegracao:#199e70; --s-cointegracao_din:#c98500;
+  --s-np:#a77de6;
+  --ring:0 0 0 3px rgba(57,135,229,.35);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1360px;margin:0 auto;padding-inline:20px;padding-block:0 64px}
+:focus-visible{outline:none;box-shadow:var(--ring);border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+header.top{padding-block:34px 22px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px}
+h1{font-family:var(--disp);font-weight:700;font-size:clamp(28px,4.6vw,42px);line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.lede{margin:12px 0 0;max-width:66ch;color:var(--ink-2);font-size:14.5px}
+.lede b{color:var(--ink);font-weight:600}
+.lede code{font-family:var(--mono);font-size:12.5px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.meta span b{color:var(--ink-2);font-weight:500}
+
+.controls{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-block:1px solid var(--line);margin-inline:-20px;padding:10px 20px}
+.ctl-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.ctl{display:flex;align-items:center;gap:8px;min-width:0}
+.ctl-lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:12.5px;padding:4px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);color:var(--ink-2);font:inherit;font-size:12.5px;padding:4px 10px;border-radius:999px;cursor:pointer}
+.chip:hover{border-color:var(--line-2)}
+.chip .dot{width:9px;height:9px;border-radius:50%;background:var(--c,var(--ink-3));flex:none;opacity:.28}
+.chip[aria-pressed="true"]{color:var(--ink);border-color:var(--line-2);background:var(--surface-2);font-weight:500}
+.chip[aria-pressed="true"] .dot{opacity:1}
+input[type="search"],select{font:inherit;font-size:12.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 9px;max-width:100%}
+input[type="search"]{width:180px}
+select{cursor:pointer}
+.linkbtn{appearance:none;background:none;border:0;font:inherit;font-size:12.5px;color:var(--accent);cursor:pointer;padding:4px 2px;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.count{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-left:auto;white-space:nowrap}
+
+.ntabs{display:flex;gap:0;margin:22px 0 0;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+.ntabs button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;color:var(--ink-3);font:inherit;font-size:13.5px;font-weight:500;padding:9px 16px;cursor:pointer;margin-bottom:-1px;display:flex;align-items:baseline;gap:7px;white-space:nowrap}
+.ntabs button:hover{color:var(--ink-2)}
+.ntabs button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.ntabs button .n{font-family:var(--disp);font-size:17px;font-weight:700;letter-spacing:-.02em}
+.ntabs button .c{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+.nbanner{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:12px 0 0;font-size:12.5px;color:var(--ink-2)}
+.nbanner b{color:var(--ink);font-weight:600}
+@media (max-width:760px){.ntabs button{padding:8px 11px;font-size:12.5px}}
+.sec{margin-top:40px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+h2{font-family:var(--disp);font-weight:600;font-size:17px;letter-spacing:-.01em;margin:0}
+.sec-note{font-size:12.5px;color:var(--ink-3);margin:0}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tile{background:var(--surface);padding:14px 16px 15px;display:flex;flex-direction:column;min-width:0}
+.tile .t-lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.tile .t-val{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:5px}
+.tile .t-val .u{font-size:15px;font-weight:600;color:var(--ink-2);margin-left:1px}
+.tile .t-who{font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:6px;margin-top:6px;min-width:0}
+.tile .t-who .dot{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
+.tile .t-who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .t-ctx{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:3px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px 14px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0 0 14px;padding:0;list-style:none}
+.legend li{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2)}
+.legend .swatch{width:11px;height:11px;border-radius:3px;background:var(--c)}
+.bars{position:relative}
+.bar-axis{position:absolute;top:0;bottom:22px;left:calc(var(--lw) + var(--cgap));right:calc(var(--vw) + var(--cgap));pointer-events:none}
+.bar-axis i{position:absolute;top:0;bottom:0;width:1px;background:var(--line);display:block}
+.bar-axis i.zero{background:var(--line-2)}
+.bar-rows{position:relative;display:flex;flex-direction:column;gap:3px}
+.bar-row{display:grid;grid-template-columns:var(--lw) 1fr var(--vw);gap:var(--cgap);align-items:center;padding:2px 0;border-radius:6px;cursor:pointer}
+.bar-row:hover{background:var(--surface-2)}
+.bar-lab{min-width:0;font-size:12.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-lab em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-left:6px}
+.bar-track{position:relative;height:17px}
+.bar-fill{position:absolute;top:2px;bottom:2px;background:var(--c)}
+.bar-fill.pos{border-radius:0 4px 4px 0}
+.bar-fill.neg{border-radius:4px 0 0 4px}
+.bar-val{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;text-align:right;color:var(--ink);white-space:nowrap}
+.bar-ticks{position:relative;height:22px;margin-left:calc(var(--lw) + var(--cgap));margin-right:calc(var(--vw) + var(--cgap))}
+.bar-ticks b{position:absolute;top:5px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--ink-3);white-space:nowrap}
+.axis-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);text-align:center;margin:2px 0 0}
+
+.tbl-tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.tbl-tabs button{appearance:none;background:transparent;border:1px solid transparent;color:var(--ink-2);font:inherit;font-size:12.5px;padding:4px 11px;border-radius:999px;cursor:pointer}
+.tbl-tabs button:hover{background:var(--surface-2)}
+.tbl-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:500}
+.tbl-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
+thead th{position:sticky;top:0;z-index:3;background:var(--surface-2);text-align:right;font-weight:500;font-size:11px;color:var(--ink-2);padding:9px 12px;border-bottom:1px solid var(--line-2);white-space:nowrap;cursor:pointer;vertical-align:bottom}
+thead th:first-child{text-align:left;left:0;z-index:5}
+thead th .ar{color:var(--accent);font-size:10px;margin-left:3px}
+thead th[aria-sort]{color:var(--ink);font-weight:600}
+tbody td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody td.name{text-align:left;font-family:var(--sans);color:var(--ink);white-space:normal;width:250px;min-width:186px}
+thead th.stick{width:250px}
+th.stick,td.stick{position:sticky;left:0;background:var(--surface);z-index:2;border-right:1px solid var(--line)}
+thead th.stick{background:var(--surface-2)}
+tbody tr:hover td,tbody tr:hover td.stick{background:var(--surface-2)}
+.tbl.heat td.hc{background:color-mix(in oklab,var(--heat) calc(var(--t) * 21%),transparent)}
+.tbl.heat td.hc.best{font-weight:500;color:var(--ink)}
+.nm{display:flex;align-items:center;gap:7px}
+.nm .dot{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;margin-left:15px}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+tbody tr{cursor:pointer}
+.empty{padding:36px 20px;text-align:center;color:var(--ink-3);font-size:13px;margin:0}
+
+.scrim{position:fixed;inset:0;background:rgba(10,11,13,.44);z-index:60;opacity:0;transition:opacity .18s}
+.scrim.show{opacity:1}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--surface);border-left:1px solid var(--line);z-index:61;overflow-y:auto;transform:translateX(100%);transition:transform .22s cubic-bezier(.32,.72,0,1);padding:0 0 40px;box-shadow:-20px 0 60px -30px rgba(0,0,0,.5)}
+.drawer.show{transform:none}
+.dr-head{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line);padding:16px 20px 13px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;z-index:2}
+.dr-head h3{font-family:var(--disp);font-weight:700;font-size:19px;margin:0;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.dr-head h3 .dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.dr-head p{margin:0}
+.dr-sub{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:6px!important}
+.dr-close{appearance:none;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;color:var(--ink-2);cursor:pointer;font-size:14px;line-height:1;width:28px;height:28px;flex:none}
+.dr-grp{padding:16px 20px 0}
+.dr-grp h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px;font-weight:400}
+.dr-grp dl{display:grid;grid-template-columns:1fr auto;margin:0}
+.dr-grp dt,.dr-grp dd{padding:5px 0;border-bottom:1px solid var(--line);margin:0;font-size:12.5px}
+.dr-grp dt{color:var(--ink-2)}
+.dr-grp dd{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--ink);padding-left:14px}
+
+.tip{position:fixed;z-index:70;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:7px 10px;border-radius:7px;max-width:260px;line-height:1.4;opacity:0;transition:opacity .1s;left:-999px;top:-999px}
+.tip.show{opacity:1}
+.tip b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,10px);background:var(--ink);color:var(--bg);font-size:12.5px;padding:8px 14px;border-radius:999px;z-index:80;opacity:0;transition:.18s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.notes{margin-top:46px;border-top:1px solid var(--line);padding-top:18px;color:var(--ink-2);font-size:12.5px;max-width:78ch}
+.notes h2{margin-bottom:10px}
+.notes ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px}
+.notes b{color:var(--ink);font-weight:600}
+
+/* ── aba Custos de transação ─────────────────────────────────────────── */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 15px;min-width:0}
+.card h3{font-family:var(--disp);font-size:15px;font-weight:600;margin:0 0 6px;display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card h3 small{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);font-weight:400}
+.card p{margin:0;font-size:12.5px;color:var(--ink-2)}
+.card p+p{margin-top:6px}
+.card b{color:var(--ink);font-weight:600}
+.card[aria-current="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.db-wrap{position:relative}
+.db-axis{position:absolute;top:0;bottom:0;left:calc(var(--lw) + var(--cgap));right:calc(var(--vw2) + var(--cgap));pointer-events:none}
+.db-axis i{position:absolute;top:0;bottom:0;width:1px;background:var(--line);display:block}
+.db-axis i.zero{background:var(--ink-3)}
+.db-rows{position:relative}
+.db-grp{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:14px 0 4px;position:relative;background:var(--surface);display:inline-block;padding-right:8px}
+.db-grp:first-child{margin-top:0}
+.db-row{display:grid;grid-template-columns:var(--lw) 1fr var(--vw2);gap:var(--cgap);align-items:center;padding:3px 0;border-radius:6px}
+.db-row:hover{background:color-mix(in srgb,var(--surface-2) 70%,transparent)}
+.db-track{position:relative;height:20px}
+.db-line{position:absolute;top:9px;height:2px;border-radius:2px;opacity:.55}
+.db-dot{position:absolute;top:4px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%)}
+.db-dot.g{background:var(--surface);border:2px solid var(--ink-3)}
+.db-val{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;color:var(--ink-3)}
+.db-val b{color:var(--ink);font-weight:500}
+.db-val b.neg,.tbl td.neg{color:var(--crit)}
+.db-ticks{position:relative;height:22px;margin-left:calc(var(--lw) + var(--cgap));margin-right:calc(var(--vw2) + var(--cgap))}
+.db-ticks b{position:absolute;top:5px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--ink-3);white-space:nowrap}
+.legend .ring{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink-3);background:var(--surface)}
+.legend .disc{width:11px;height:11px;border-radius:50%;background:var(--ink-2)}
+.tbl th.grp{text-align:center;cursor:default;border-left:1px solid var(--line)}
+.tbl th.gl,.tbl td.gl{border-left:1px solid var(--line)}
+.tbl td.sel,.tbl th.sel{background:color-mix(in oklab,var(--accent) 10%,var(--surface));color:var(--ink)}
+.tbl tbody tr.ccusto{cursor:default}
+.ressalva{margin-top:12px;font-size:12.5px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--crit);border-radius:8px;padding:10px 14px;max-width:96ch}
+.ressalva b{color:var(--ink)}
+:root{--vw2:150px}
+
+@media (max-width:760px){
+  :root{--lw:104px;--vw:62px;--cgap:10px;--vw2:96px}
+  .db-val{font-size:11px}
+  .bar-lab{font-size:11.5px}
+  .bar-lab em{display:none}
+  .bar-val{font-size:11px}
+  .count{margin-left:0}
+  input[type="search"]{width:100%;min-width:140px}
+  .drawer{width:100%}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">TCC &middot; Pair trading no S&amp;P 500</p>
+    <h1>Backtests de Pares</h1>
+    <p class="lede">Execuções do pipeline <code>formação &rarr; negociação &rarr; relatório</code>, organizadas por <b>quantidade de pares selecionados por janela</b>. Cada aba é um estudo fechado: estratégias cruzadas com as duas convenções de capital e as duas amostras. Para confrontar com a <b>Tabela 4 do artigo</b>, use o retorno <b>bruto</b> &mdash; o retorno do par já é excedente, porque a taxa livre de risco se cancela entre as pernas long e short.</p>
+    <div class="meta">
+      <span><b>Base:</b> base_unificada.csv, máscara de membership ligada</span>
+      <span><b>Padronizado em 22/09:</b> SIGMA_MIN 0,01 &middot; MAX_RETORNO_DIA 0,90</span>
+      <span><b>Fonte:</b> células dos próprios notebooks</span>
+    </div>
+  </header>
+
+  <div class="ntabs" id="ntabs" role="tablist" aria-label="Quantidade de pares"></div>
+  <p class="nbanner" id="nbanner"></p>
+
+  <div id="vistaPrincipal">
+  <div class="controls">
+    <div class="ctl-row">
+      <div class="ctl"><span class="ctl-lab">Amostra</span><div class="seg" id="segAmostra"></div></div>
+      <div class="ctl"><span class="ctl-lab">Capital</span><div class="seg" id="segCapital"></div></div>
+      <div class="ctl"><span class="ctl-lab">Janelas</span><div class="seg" id="segJanelas"></div></div>
+      <div class="ctl"><span class="ctl-lab">Buscar</span><input type="search" id="q" placeholder="ex.: BIC, dinâmica" autocomplete="off"></div>
+      <button class="linkbtn" id="reset" type="button">Limpar filtros</button>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="ctl-row" style="margin-top:8px">
+      <div class="ctl"><span class="ctl-lab">Método</span><div class="chips" id="chipMetodo"></div></div>
+    </div>
+  </div>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Destaques da seleção</h2><p class="sec-note" id="tilesNote"></p></div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>Comparação por métrica</h2>
+      <div class="ctl"><span class="ctl-lab">Métrica</span><select id="chartMetric" aria-label="Métrica do gráfico"></select></div>
+    </div>
+    <div class="panel">
+      <ul class="legend" id="legend"></ul>
+      <div class="bars">
+        <div class="bar-axis" id="barAxis" aria-hidden="true"></div>
+        <div class="bar-rows" id="barRows"></div>
+        <div class="bar-ticks" id="barTicks" aria-hidden="true"></div>
+      </div>
+      <p class="axis-title" id="axisTitle"></p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>Tabela completa</h2>
+      <div class="ctl" style="gap:16px">
+        <label class="ctl" style="gap:6px;font-size:12.5px;color:var(--ink-2);cursor:pointer"><input type="checkbox" id="heat"> sombrear por desempenho</label>
+        <button class="linkbtn" id="copy" type="button">Copiar como TSV</button>
+      </div>
+    </div>
+    <div class="tbl-tabs" id="tabs"></div>
+    <div class="tbl-scroll"><table class="tbl" id="tbl"><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+    <p class="sec-note" style="margin-top:10px">Clique num cabeçalho para ordenar &middot; clique numa linha para abrir os 31 indicadores e os parâmetros daquela execução.</p>
+  </section>
+
+  <section class="notes">
+    <h2>Como ler</h2>
+    <ul>
+      <li><b>Committed capital</b> divide o resultado pelo número de pares elegíveis no início do período; <b>fully invested</b> divide só pelos pares efetivamente abertos. A segunda convenção é sempre mais alta e é a mais próxima do artigo original.</li>
+      <li><b>Passo 1</b> abre uma janela de formação por mês, produzindo seis carteiras sobrepostas; é a configuração da cointegração e por isso a que vai <b>sem sufixo</b> no nome. <b>Passo 6</b> usa janelas não sobrepostas, uma a cada seis meses, e leva o sufixo <b>(semestral)</b>.</li>
+      <li>O retorno <b>líquido</b> subtrai a taxa livre de risco do bruto. Serve como sensibilidade, não como o número comparável à Tabela 4.</li>
+      <li>O sombreamento da tabela é por posição dentro da seleção atual e já considera a direção de cada métrica: em volatilidade, drawdown e curtose, <b>menor é melhor</b>. Métricas sem direção definida (curtose à parte) ficam sem sombra.</li>
+      <li>Nas <b>dinâmicas</b>, o termo depois do primeiro &ldquo;·&rdquo; diz <b>quando o par é retestado</b>: <b>diário</b> &mdash; todo dia fora do mercado com |z|&nbsp;&gt;&nbsp;&delta; (só existe na distância, onde o reteste é barato); <b>cruzamento</b> &mdash; só no dia em que |z| cruza &delta; (o padrão da cointegração, onde cada reteste é um ADF); <b>sem veto</b> &mdash; reestima &mu; e &sigma; no sinal mas nunca recusa o trade (reteste diário). Os modificadores seguintes: <b>δ1,5</b> abre a 1,5 desvios-padrão em vez de 2,0; <b>jan.252</b> reestima só com os últimos 252 pregões em vez de toda a amostra desde o início da formação; <b>Z-reest</b> exige |z|&nbsp;&gt;&nbsp;&delta; também com os parâmetros reestimados.</li>
+      <li>⚠️ <b>Assimetria deliberada:</b> a distância dinâmica usa <b>Z-reest ligado em todas as variantes</b>; a cointegração dinâmica só na variante marcada <b>Z-reest</b>. O veto também é de natureza diferente: na distância, SSD por dia acima de 4&times; a da formação; na cointegração, perda de cointegração no ADF.</li>
+      <li><b>Distância sem &mu; (semestral)</b> é uma sensibilidade: mede o gatilho de 2&sigma; a partir da igualdade dos preços normalizados, como em Gatev et al. (2006) e no código de referência de Broussard &amp; Vaihekoski (2012). Compare com <b>Distância (semestral)</b>, que mede a partir da média &mu; do spread na formação &mdash; a convenção adotada em todas as demais linhas de distância. Tudo o mais é igual entre as duas.</li>
+      <li>As abas de <b>5 / 20 / 35 pares</b> são partições fechadas, não um filtro: cada uma tem sua própria formação, seu próprio universo de pares e seus próprios denominadores. Nenhum número de uma aba entra no cálculo de outra.</li>
+      <li>A aba de <b>20 pares</b> tem 17 estratégias; as de 5 e 35 têm 4, por escolha de escopo — só passo 1 mês, e cointegração só na variante BIC. Comparações entre abas devem ficar restritas às 4 estratégias que existem nas três.</li>
+      <li>Na cointegração, a formação testa cointegração apenas nos <b>100 pares de menor SSD</b> por janela (<code style="font-family:var(--mono);font-size:11.5px">SSD_PRE_FILTER_N</code>). Com 20 pares isso nunca restringe; com 35, parte das janelas não alcança os 35 e fica com menos. O teto foi mantido de propósito: alterá-lo faria o N=35 sortear de um universo de candidatos diferente do das outras abas. O painel mostra os pares efetivamente simulados em <b>Operações</b>.</li>
+      <li>Retorno acumulado e CAGR não são comparáveis entre as amostras: 1991&ndash;2015 cobre 24,5 anos e 1991&ndash;2025 cobre 34,5.</li>
+      <li>Todos os números destas abas são <b>sem custos de transação</b>. O efeito dos custos nas melhores estratégias de cada método está na aba <b>Custos de transação</b>.</li>
+    </ul>
+  </section>
+  </div>
+
+  <div id="vistaCustos" hidden>
+    <div class="controls">
+      <div class="ctl-row">
+        <div class="ctl"><span class="ctl-lab">Capital</span><div class="seg" id="cSegCapital"></div></div>
+        <div class="ctl"><span class="ctl-lab">Custo</span><div class="seg" id="cSegCenario"></div></div>
+        <div class="ctl"><span class="ctl-lab">Métrica</span><div class="seg" id="cSegMetrica"></div></div>
+        <span class="count" id="cCount"></span>
+      </div>
+    </div>
+
+    <section class="sec">
+      <div class="sec-head"><h2>Os esquemas de custo</h2><p class="sec-note">o selecionado no controle <b>Custo</b> fica marcado</p></div>
+      <div class="cards">
+        <div class="card" data-cen="rad">
+          <h3>Rad et al. (2016) <small>§ 4.4 · Do &amp; Faff (2012)</small></h3>
+          <p>Comissão do ano + impacto de mercado, cobrados <b>por dólar negociado em cada perna</b>, em cada compra e em cada venda: <b>35 bps em 1991</b>, caindo até <b>29 bps em 2009</b> (9 de comissão + 20 de impacto) e mantidos daí em diante.</p>
+          <p>Um trade completo de um par de $1 + $1 negocia ~$4 e custa ~1,2–1,4%.</p>
+        </div>
+        <div class="card" data-cen="rad_metade">
+          <h3>Rad ÷ 2 <small>sensibilidade</small></h3>
+          <p>A mesma tabela pela metade. Rad escreve <i>“double these costs to cover each complete pairs trade which consists of two round-trip trades”</i>; se comissão + impacto já forem o custo de uma ida-e-volta por ação, e não de cada ordem, o custo é este.</p>
+        </div>
+        <div class="card" data-cen="professor">
+          <h3>Professor <small>Sabino da Silva et al. (2023)</small></h3>
+          <p><b>20 bps fixos por trade</b>, descontados do retorno do par no dia do fechamento — como o código de referência dos alunos (<code style="font-family:var(--mono);font-size:11.5px">distance_gatev.py</code>, execução sem espera). Não depende do tamanho das pernas nem do ano.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head"><h2 id="cChartTitle"></h2><p class="sec-note" id="cChartNote"></p></div>
+      <div class="panel">
+        <ul class="legend" id="cLegend"></ul>
+        <div class="db-wrap">
+          <div class="db-axis" id="cAxis" aria-hidden="true"></div>
+          <div class="db-rows" id="cRows"></div>
+        </div>
+        <div class="db-ticks" id="cTicks" aria-hidden="true"></div>
+        <p class="axis-title" id="cAxisTitle"></p>
+      </div>
+      <p class="ressalva" id="cResumo"></p>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head">
+        <h2>Tabela</h2>
+        <button class="linkbtn" id="cCopy" type="button">Copiar como TSV</button>
+      </div>
+      <div class="tbl-scroll"><table class="tbl" id="cTbl"><thead id="cThead"></thead><tbody id="cTbody"></tbody></table></div>
+      <p class="sec-note" style="margin-top:10px"><b>Equilíbrio</b>: quantas vezes o esquema de custo zeraria o retorno médio anual (1,0 = o próprio esquema já zera; abaixo de 1 = o retorno fica negativo). Para o professor, o mesmo número em bps por trade.</p>
+    </section>
+
+    <section class="notes">
+      <h2>Como foi calculado</h2>
+      <ul>
+        <li><b>Quais estratégias:</b> as 3 de maior retorno bruto em <b>committed capital, 1991&ndash;2025, 20 pares</b> de cada método, entre as execuções das abas principais (distância estática e dinâmica juntas; cointegração estática e dinâmica juntas). O não paramétrico não está nas abas principais: entram as 3 variantes de maior retorno da rodada de 02/11 mais a configuração padrão do método.</li>
+        <li><b>Quando o custo é cobrado:</b> a abertura acontece no fechamento do dia do sinal e o custo dela entra no primeiro dia com posição; o fechamento paga no próprio dia, inclusive o fechamento forçado no fim do período. Uma posição aberta no último pregão do período não chega a existir e não paga nada.</li>
+        <li><b>Quanto se negocia (Rad):</b> distância, $1 comprado + $1 vendido na abertura e o valor das duas pernas no fechamento; cointegração linear, 1 unidade da dependente contra β da independente na escala de Rad (perna comprada = $1, por isso 1/β quando se vende a dependente); NP, a escala de cada variante (Rad, slides 1 : β ou maior perna = $1). Quanto maior a posição, maior o custo.</li>
+        <li><b>Comissão provisória:</b> a tabela anual de Do &amp; Faff (2012) não está no repositório (artigo pago). Até obtê-la, 1991&ndash;2009 cai em linha reta de 15 bps (nível implícito em Fil, 2020, Tab. 1: 35 bps de custo total em 1990) a 9 bps (Do &amp; Faff, via Rad). Depois de 2009 o último valor é mantido, como Rad fez até 2014. Comissões institucionais continuaram caindo depois disso (3&ndash;5 bps, Virtu 2019), então manter 9 bps é conservador.</li>
+        <li><b>Fora do cálculo:</b> aluguel da ação vendida (Rad o desconsidera para ações líquidas) e espera de um dia antes de executar (Gatev et al., 2006, § 3.3). As abas principais seguem sem custos.</li>
+        <li><b>Conferência:</b> a linha &ldquo;sem custos&rdquo; reproduz a das abas principais (e, no NP, a série gravada em 02/11). Os custos são aplicados sobre os retornos diários de cada par, antes da agregação, então committed capital, fully invested e as carteiras sobrepostas agregam o líquido exatamente como agregam o bruto. Código: <code style="font-family:var(--mono);font-size:11.5px">src/custos.py</code> e <code style="font-family:var(--mono);font-size:11.5px">validation/custos/roda_custos.py</code>.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Detalhe da execução"></aside>
+<div class="tip" id="tip" role="status"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script id="dados" type="application/json">__DATA__</script>
+<script id="dadosCustos" type="application/json">__CUSTOS__</script>
+<script>
+(function(){
+"use strict";
+var DATA = JSON.parse(document.getElementById('dados').textContent);
+var CUSTOS = JSON.parse(document.getElementById('dadosCustos').textContent);
+
+var METODOS = [
+  {k:'distancia',        l:'Distância'},
+  {k:'distancia_din',    l:'Distância dinâmica'},
+  {k:'cointegracao',     l:'Cointegração'},
+  {k:'cointegracao_din', l:'Cointegração dinâmica'}
+];
+var MLAB = {}; METODOS.forEach(function(m){ MLAB[m.k]=m.l; });
+function cor(m){ return 'var(--s-'+m+')'; }
+
+var METRICS = [
+  {g:'Retorno',  k:'ret_anual_bruto_%',   l:'Retorno anual bruto',      s:'Ret. bruto a.a.',  u:'%', d:3, dir:1},
+  {g:'Retorno',  k:'ret_anual_liquido_%', l:'Retorno anual líq. de rf', s:'Ret. líq. a.a.',   u:'%', d:3, dir:1},
+  {g:'Retorno',  k:'cagr_bruto_%',        l:'CAGR bruto',               s:'CAGR bruto',       u:'%', d:3, dir:1},
+  {g:'Retorno',  k:'cagr_liquido_%',      l:'CAGR líquido',             s:'CAGR líq.',        u:'%', d:3, dir:1},
+  {g:'Retorno',  k:'ret_acumulado_%',     l:'Retorno acumulado',        s:'Ret. acum.',       u:'%', d:1, dir:1},
+  {g:'Risco',    k:'volatilidade_anual_%',l:'Volatilidade anual',       s:'Volatilidade',     u:'%', d:3, dir:-1},
+  {g:'Risco',    k:'drawdown_max_%',      l:'Drawdown máximo',          s:'Drawdown máx.',    u:'%', d:2, dir:-1},
+  {g:'Risco',    k:'min_diario_%',        l:'Mínimo diário',            s:'Mín. diário',      u:'%', d:3, dir:1},
+  {g:'Risco',    k:'max_diario_%',        l:'Máximo diário',            s:'Máx. diário',      u:'%', d:3, dir:0},
+  {g:'Risco',    k:'skewness',            l:'Assimetria',               s:'Assimetria',       u:'',  d:3, dir:0},
+  {g:'Risco',    k:'kurtose',             l:'Curtose',                  s:'Curtose',          u:'',  d:2, dir:-1},
+  {g:'Ajustado ao risco', k:'sharpe',         l:'Sharpe (bruto)',       s:'Sharpe',          u:'', d:3, dir:1},
+  {g:'Ajustado ao risco', k:'sharpe_liquido', l:'Sharpe (líquido)',     s:'Sharpe líq.',     u:'', d:3, dir:1},
+  {g:'Ajustado ao risco', k:'sortino',        l:'Sortino',              s:'Sortino',         u:'', d:3, dir:1},
+  {g:'Ajustado ao risco', k:'t_stat_NW6',     l:'t-stat Newey-West(6)', s:'t-stat NW(6)',    u:'', d:3, dir:1},
+  {g:'Frequência', k:'pct_dias_positivos',  l:'% de dias positivos',    s:'Dias +',          u:'%', d:2, dir:1},
+  {g:'Frequência', k:'pct_dias_negativos',  l:'% de dias negativos',    s:'Dias −',          u:'%', d:2, dir:-1},
+  {g:'Frequência', k:'pct_meses_positivos', l:'% de meses positivos',   s:'Meses +',         u:'%', d:2, dir:1},
+  {g:'Frequência', k:'ret_mensal_medio_%',  l:'Retorno mensal médio',   s:'Ret. mensal',     u:'%', d:4, dir:1},
+  {g:'Frequência', k:'sharpe_mensal',       l:'Sharpe mensal (Rad)',    s:'Sharpe mensal',   u:'',  d:4, dir:1},
+  {g:'Operações', k:'n_pares_formados',   l:'Pares formados',            s:'Pares form.',   u:'', d:0, dir:0},
+  {g:'Operações', k:'pares_simulados',    l:'Pares simulados',           s:'Pares sim.',    u:'', d:0, dir:0},
+  {g:'Operações', k:'periodos',           l:'Períodos de negociação',    s:'Períodos',      u:'', d:0, dir:0},
+  {g:'Operações', k:'aberturas',          l:'Aberturas',                 s:'Aberturas',     u:'', d:0, dir:0},
+  {g:'Operações', k:'aberturas_por_par',  l:'Aberturas por par',         s:'Abert./par',    u:'', d:3, dir:0},
+  {g:'Operações', k:'taxa_convergencia_%',l:'Taxa de convergência',      s:'Convergência',  u:'%', d:2, dir:1},
+  {g:'Operações', k:'pares_com_trade_%',  l:'% de pares que negociaram', s:'Pares c/ trade',u:'%', d:2, dir:0},
+  {g:'Operações', k:'ret_medio_por_par_%',l:'Retorno médio por par',     s:'Ret./par',      u:'%', d:3, dir:1},
+  {g:'Operações', k:'pct_pares_lucro',    l:'% de pares com lucro',      s:'Pares c/ lucro',u:'%', d:2, dir:1},
+  {g:'Amostra',   k:'obs_dias',           l:'Observações (dias)',        s:'Dias obs.',     u:'', d:0, dir:0},
+  {g:'Amostra',   k:'segundos',           l:'Tempo de execução',         s:'Execução',      u:'s',d:1, dir:0}
+];
+var MBY = {}; METRICS.forEach(function(m){ MBY[m.k]=m; });
+var GRUPOS = ['Retorno','Risco','Ajustado ao risco','Frequência','Operações','Amostra'];
+
+var PARAMS = [
+  ['p_DELTA','Δ de abertura (σ)'], ['p_LIMIAR_FECHAMENTO','Limiar de fechamento (σ)'],
+  ['p_FECHA_NO_CRUZAMENTO','Fecha no cruzamento'], ['p_USAR_MEDIA_SPREAD','Usa média do spread'],
+  ['p_SIGMA_MIN','σ mínimo'], ['p_MAX_RETORNO_DIA','Retorno máx. por dia'], ['p_STOP','Stop'],
+  ['p_MODO_BANDA','Modo da banda'], ['p_EXIGE_Z_REESTIMADO','Exige z reestimado'],
+  ['p_JANELA_REESTIMACAO','Janela de reestimação'], ['p_RETESTE_MODO','Modo de reteste'],
+  ['p_METODO_COINT_RETESTE','Reteste de cointegração'], ['p_BILATERAL_RETESTE','Reteste bilateral'],
+  ['p_AUTOLAG_ADF','Autolag do ADF'], ['p_MAX_RAZAO_SSD','Razão SSD máxima'],
+  ['p_BETA_MIN','β mínimo'], ['p_N_PARES_NOMINADOS','Pares nominados'], ['p_PERIODO_FIM','Período final']
+];
+
+function fmt(v,d){
+  if(v===null||v===undefined||v!==v) return '—';
+  return Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+function fmtM(row,m){
+  var v=row[m.k]; if(v===null||v===undefined) return '—';
+  return fmt(v,m.d)+(m.u||'');
+}
+function fmtP(v){
+  if(v===null||v===undefined||v==='') return '—';
+  if(v===true||v==='True') return 'sim';
+  if(v===false||v==='False') return 'não';
+  if(typeof v==='number') return fmt(v, Number.isInteger(v)?0:2);
+  return String(v);
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function el(id){ return document.getElementById(id); }
+
+var LS='tcc-pares-v1';
+function save(){ try{ localStorage.setItem(LS,JSON.stringify({np:S.nPares,a:S.amostra,c:S.capital,j:S.janelas,m:S.metodos.slice(),g:S.grupo,cm:S.chartMetric,h:S.heat,v:S.view,cc:S.cCap,ce:S.cCen,cx:S.cMet})); }catch(e){} }
+function load(){ try{ var r=JSON.parse(localStorage.getItem(LS)); return (r&&typeof r==='object')?r:null; }catch(e){ return null; } }
+
+var AMOSTRAS=[], CAPITAIS=[], JANELAS=[], NPARES=[];
+DATA.forEach(function(r){
+  if(NPARES.indexOf(r.n_pares)<0) NPARES.push(r.n_pares);
+  if(AMOSTRAS.indexOf(r.amostra)<0) AMOSTRAS.push(r.amostra);
+  if(CAPITAIS.indexOf(r.capital)<0) CAPITAIS.push(r.capital);
+  if(JANELAS.indexOf(r.janelas)<0) JANELAS.push(r.janelas);
+});
+AMOSTRAS.sort(); CAPITAIS.sort(); JANELAS.sort(); NPARES.sort(function(a,b){return a-b;});
+
+var DEFAULTS = {
+  amostra:AMOSTRAS[0], capital:'committed capital', janelas:'*',
+  metodos:METODOS.map(function(m){return m.k;}),
+  grupo:'Retorno', sortKey:'ret_anual_bruto_%', chartMetric:'ret_anual_bruto_%'
+};
+var S = {
+  nPares: (NPARES.indexOf(20)>=0 ? 20 : NPARES[0]),
+  amostra:DEFAULTS.amostra, capital:DEFAULTS.capital, janelas:DEFAULTS.janelas,
+  metodos:DEFAULTS.metodos.slice(), q:'', grupo:DEFAULTS.grupo,
+  sortKey:DEFAULTS.sortKey, sortDir:-1, chartMetric:DEFAULTS.chartMetric, heat:true,
+  view:'n', cCap:'committed capital', cCen:'rad', cMet:'ret'
+};
+(function(){
+  var r=load(); if(!r) return;
+  if(NPARES.indexOf(r.np)>=0) S.nPares=r.np;
+  if(AMOSTRAS.indexOf(r.a)>=0) S.amostra=r.a;
+  if(r.c==='*'||CAPITAIS.indexOf(r.c)>=0) S.capital=r.c;
+  if(r.j==='*'||JANELAS.indexOf(r.j)>=0) S.janelas=r.j;
+  if(Array.isArray(r.m)){ var m=r.m.filter(function(k){return MLAB[k];}); if(m.length) S.metodos=m; }
+  if(GRUPOS.indexOf(r.g)>=0) S.grupo=r.g;
+  if(MBY[r.cm]) S.chartMetric=r.cm;
+  if(typeof r.h==='boolean') S.heat=r.h;
+  if(r.v==='custos' && CUSTOS.length) S.view='custos';
+  if(r.cc==='committed capital'||r.cc==='fully invested') S.cCap=r.cc;
+  if(['rad','rad_metade','professor'].indexOf(r.ce)>=0) S.cCen=r.ce;
+  if(r.cx==='ret'||r.cx==='sharpe') S.cMet=r.cx;
+})();
+
+function rows(){
+  var q=S.q.trim().toLowerCase();
+  return DATA.filter(function(r){
+    if(r.n_pares!==S.nPares) return false;          // partição por aba — nunca mistura
+    if(S.amostra!=='*' && r.amostra!==S.amostra) return false;
+    if(S.capital!=='*' && r.capital!==S.capital) return false;
+    if(S.janelas!=='*' && r.janelas!==S.janelas) return false;
+    if(S.metodos.indexOf(r.metodo)<0) return false;
+    if(q && (r.rotulo+' '+MLAB[r.metodo]+' '+r.capital+' '+r.janelas+' '+r.amostra).toLowerCase().indexOf(q)<0) return false;
+    return true;
+  });
+}
+function variesIn(rs){
+  function u(k){ var s={},n=0; rs.forEach(function(r){ if(!s[r[k]]){s[r[k]]=1;n++;} }); return n>1; }
+  return {amostra:u('amostra'),capital:u('capital'),janelas:u('janelas')};
+}
+function ctxOf(r,v){
+  var out=[];
+  if(v.amostra) out.push(r.amostra);
+  if(v.capital) out.push(r.capital==='committed capital'?'committed':'fully invested');
+  if(v.janelas) out.push(r.janelas);
+  return out;
+}
+
+function seg(node,opts,cur,onPick){
+  node.innerHTML='';
+  opts.forEach(function(o){
+    var b=document.createElement('button');
+    b.type='button'; b.textContent=o.l; b.setAttribute('aria-pressed',String(o.v===cur));
+    b.onclick=function(){ onPick(o.v); };
+    node.appendChild(b);
+  });
+}
+function buildNTabs(){
+  var host=el('ntabs'); host.innerHTML='';
+  NPARES.forEach(function(n){
+    var qtd=DATA.filter(function(r){return r.n_pares===n;}).length;
+    var vars={}; DATA.forEach(function(r){ if(r.n_pares===n) vars[r.rotulo]=1; });
+    var nv=Object.keys(vars).length;
+    var b=document.createElement('button');
+    b.type='button'; b.setAttribute('role','tab');
+    b.setAttribute('aria-pressed',String(S.view==='n' && n===S.nPares));
+    b.innerHTML='<span class="n">'+n+'</span> pares <span class="c">'+nv+' estratégias · '+qtd+' execuções</span>';
+    b.onclick=function(){
+      if(S.view==='n' && n===S.nPares) return;
+      if(n!==S.nPares){ S.nPares=n; S.q=''; S.metodos=DEFAULTS.metodos.slice(); }
+      S.view='n';
+      render();
+    };
+    host.appendChild(b);
+  });
+  if(CUSTOS.length){
+    var ne={}; CUSTOS.forEach(function(r){ ne[r.rotulo]=1; });
+    var bc=document.createElement('button');
+    bc.type='button'; bc.setAttribute('role','tab');
+    bc.setAttribute('aria-pressed',String(S.view==='custos'));
+    bc.innerHTML='<span class="n">$</span> Custos de transação <span class="c">'+Object.keys(ne).length+' estratégias · 1991–2025</span>';
+    bc.onclick=function(){ if(S.view!=='custos'){ S.view='custos'; render(); } };
+    host.appendChild(bc);
+  }
+  if(S.view==='custos'){
+    el('nbanner').innerHTML='As <b>3 melhores estratégias de cada método</b> (retorno bruto, committed capital, 1991–2025, 20 pares), '+
+      'recalculadas com custos de transação. A linha <b>sem custos</b> é a mesma das abas de pares.';
+    return;
+  }
+  var rs=DATA.filter(function(r){return r.n_pares===S.nPares;});
+  var nomes={}; rs.forEach(function(r){ nomes[r.rotulo]=1; });
+  el('nbanner').innerHTML='Top <b>'+S.nPares+'</b> pares por janela de formação. '+
+    'Esta aba é uma partição fechada: <b>'+Object.keys(nomes).length+'</b> estratégias, '+
+    '<b>'+rs.length+'</b> execuções. Nenhum número aqui se mistura com o das outras abas.';
+}
+
+function buildControls(){
+  seg(el('segAmostra'), AMOSTRAS.map(function(a){return {v:a,l:a};}).concat([{v:'*',l:'Ambas'}]), S.amostra,
+      function(v){ S.amostra=v; render(); });
+  seg(el('segCapital'), [{v:'committed capital',l:'Committed'},{v:'fully invested',l:'Fully invested'},{v:'*',l:'Ambas'}], S.capital,
+      function(v){ S.capital=v; render(); });
+  // só oferece as janelas que existem nesta aba — um controle que leva a tela vazia é um bug
+  var jsAba = JANELAS.filter(function(j){
+    return DATA.some(function(r){ return r.n_pares===S.nPares && r.janelas===j; });
+  });
+  if(jsAba.indexOf(S.janelas)<0 && S.janelas!=='*') S.janelas='*';
+  var optJ = jsAba.length>1 ? [{v:'*',l:'Todas'}].concat(jsAba.map(function(j){return {v:j,l:j};}))
+                            : jsAba.map(function(j){return {v:'*',l:j};});
+  seg(el('segJanelas'), optJ, S.janelas, function(v){ S.janelas=v; render(); });
+
+  var cm=el('chipMetodo'); cm.innerHTML='';
+  METODOS.forEach(function(m){
+    var b=document.createElement('button');
+    b.type='button'; b.className='chip'; b.style.setProperty('--c',cor(m.k));
+    b.setAttribute('aria-pressed',String(S.metodos.indexOf(m.k)>=0));
+    b.innerHTML='<i class="dot"></i>'+esc(m.l);
+    b.onclick=function(){
+      var i=S.metodos.indexOf(m.k);
+      if(i>=0){ if(S.metodos.length>1) S.metodos.splice(i,1); } else S.metodos.push(m.k);
+      render();
+    };
+    cm.appendChild(b);
+  });
+
+  var sel=el('chartMetric'); sel.innerHTML='';
+  GRUPOS.forEach(function(g){
+    var og=document.createElement('optgroup'); og.label=g;
+    METRICS.filter(function(m){return m.g===g;}).forEach(function(m){
+      var o=document.createElement('option'); o.value=m.k; o.textContent=m.l;
+      if(m.k===S.chartMetric) o.selected=true;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  sel.onchange=function(){ S.chartMetric=sel.value; render(); };
+
+  var tabs=el('tabs'); tabs.innerHTML='';
+  GRUPOS.concat(['Parâmetros']).forEach(function(g){
+    var b=document.createElement('button'); b.type='button'; b.textContent=g;
+    b.setAttribute('aria-pressed',String(g===S.grupo));
+    b.onclick=function(){ S.grupo=g; render(); };
+    tabs.appendChild(b);
+  });
+
+  var q=el('q'); if(q.value!==S.q) q.value=S.q;
+  el('heat').checked=S.heat;
+}
+
+var TILES=[
+  {k:'ret_anual_bruto_%', lab:'Maior retorno anual bruto', dir:1},
+  {k:'sharpe',            lab:'Maior Sharpe (bruto)',      dir:1},
+  {k:'drawdown_max_%',    lab:'Menor drawdown máximo',     dir:-1},
+  {k:'t_stat_NW6',        lab:'Maior t-stat NW(6)',        dir:1}
+];
+function renderTiles(rs){
+  var v=variesIn(rs), host=el('tiles'); host.innerHTML='';
+  el('tilesNote').textContent = rs.length ? ('melhor entre '+rs.length+(rs.length>1?' execuções':' execução')) : '';
+  if(!rs.length){ host.innerHTML='<div class="tile"><span class="t-lab">Sem dados</span><span class="t-val">—</span></div>'; return; }
+  TILES.forEach(function(t){
+    var m=MBY[t.k], best=null;
+    rs.forEach(function(r){
+      if(r[t.k]===null||r[t.k]===undefined) return;
+      if(!best || (t.dir>0 ? r[t.k]>best[t.k] : r[t.k]<best[t.k])) best=r;
+    });
+    var d=document.createElement('div'); d.className='tile';
+    if(!best){ d.innerHTML='<span class="t-lab">'+esc(t.lab)+'</span><span class="t-val">—</span>'; host.appendChild(d); return; }
+    var ctx=ctxOf(best,v);
+    d.innerHTML='<span class="t-lab">'+esc(t.lab)+'</span>'+
+      '<span class="t-val">'+fmt(best[t.k],m.d)+(m.u?'<span class="u">'+m.u+'</span>':'')+'</span>'+
+      '<span class="t-who"><i class="dot" style="background:'+cor(best.metodo)+'"></i><span>'+esc(best.rotulo)+'</span></span>'+
+      '<span class="t-ctx">'+esc(ctx.length?ctx.join(' · '):(best.capital+' · '+best.janelas))+'</span>';
+    host.appendChild(d);
+  });
+}
+
+function niceTicks(lo,hi,n){
+  var span=hi-lo; if(!(span>0)) return [lo];
+  var raw=span/n, mag=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10)), norm=raw/mag;
+  var step=(norm<1.5?1:norm<3?2:norm<7?5:10)*mag;
+  var out=[], t=Math.ceil(lo/step)*step, guard=0;
+  while(t<=hi+step*1e-9 && guard++<40){ out.push(Math.abs(t)<step*1e-9?0:t); t+=step; }
+  return out;
+}
+function renderChart(rs){
+  var m=MBY[S.chartMetric];
+  var data=rs.filter(function(r){ return r[m.k]!==null&&r[m.k]!==undefined; })
+             .slice().sort(function(a,b){ return m.dir<0 ? a[m.k]-b[m.k] : b[m.k]-a[m.k]; });
+  var v=variesIn(rs);
+  var used={}; data.forEach(function(r){ used[r.metodo]=1; });
+  el('legend').innerHTML = METODOS.filter(function(x){return used[x.k];}).map(function(x){
+    return '<li><i class="swatch" style="background:'+cor(x.k)+'"></i>'+esc(x.l)+'</li>';
+  }).join('');
+
+  var rowsN=el('barRows'), axis=el('barAxis'), ticksN=el('barTicks');
+  if(!data.length){
+    rowsN.innerHTML='<p class="empty">Nenhuma execução na seleção atual.</p>';
+    axis.innerHTML=''; ticksN.innerHTML=''; el('axisTitle').textContent=''; return;
+  }
+
+  var vals=data.map(function(r){return r[m.k];});
+  var lo=Math.min(0,Math.min.apply(null,vals)), hi=Math.max(0,Math.max.apply(null,vals));
+  if(hi===lo) hi=lo+1;
+  var pad=(hi-lo)*0.04; hi+=pad; if(lo<0) lo-=pad;
+  var span=hi-lo;
+  function pct(x){ return (x-lo)/span*100; }
+  var z=pct(0);
+
+  var ticks=niceTicks(lo,hi,4);
+  axis.innerHTML=ticks.map(function(t){
+    return '<i class="'+(t===0?'zero':'')+'" style="left:'+pct(t).toFixed(3)+'%"></i>';
+  }).join('');
+  ticksN.innerHTML=ticks.map(function(t){
+    return '<b style="left:'+pct(t).toFixed(3)+'%">'+fmt(t, m.d>2?2:m.d)+'</b>';
+  }).join('');
+  el('axisTitle').textContent=m.l+(m.u?' ('+m.u+')':'');
+
+  rowsN.innerHTML=data.map(function(r){
+    var x=pct(r[m.k]), a=Math.min(x,z), w=Math.max(Math.abs(x-z),0.25);
+    var ctx=ctxOf(r,v);
+    return '<div class="bar-row" data-i="'+DATA.indexOf(r)+'" tabindex="0" role="button">'+
+      '<div class="bar-lab" title="'+esc(r.rotulo)+'">'+esc(r.rotulo)+(ctx.length?'<em>'+esc(ctx.join(' · '))+'</em>':'')+'</div>'+
+      '<div class="bar-track"><span class="bar-fill '+(r[m.k]<0?'neg':'pos')+'" style="left:'+a.toFixed(3)+'%;width:'+w.toFixed(3)+'%;background:'+cor(r.metodo)+'"></span></div>'+
+      '<div class="bar-val">'+fmt(r[m.k],m.d)+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function cols(){
+  if(S.grupo==='Parâmetros') return null;
+  return METRICS.filter(function(m){ return m.g===S.grupo; });
+}
+function renderTable(rs){
+  var cs=cols(), v=variesIn(rs), th=el('thead'), tb=el('tbody');
+  el('tbl').className='tbl'+(S.heat&&cs?' heat':'');
+
+  var keys = cs ? cs.map(function(m){return m.k;}) : PARAMS.map(function(p){return p[0];});
+  var heads = cs ? cs.map(function(m){return {k:m.k,l:m.s,t:m.l+(m.u?' ('+m.u+')':'')};})
+                 : PARAMS.map(function(p){return {k:p[0],l:p[1],t:p[0]};});
+
+  if(keys.indexOf(S.sortKey)<0 && S.sortKey!=='rotulo'){ S.sortKey = cs ? keys[0] : 'rotulo'; S.sortDir=-1; }
+
+  var sorted=rs.slice().sort(function(a,b){
+    var x=a[S.sortKey], y=b[S.sortKey];
+    if(S.sortKey==='rotulo') return String(x).localeCompare(String(y),'pt-BR')*(S.sortDir<0?1:-1);
+    var nx=(x===null||x===undefined), ny=(y===null||y===undefined);
+    if(nx&&ny) return 0; if(nx) return 1; if(ny) return -1;
+    if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sortDir;
+    return String(x).localeCompare(String(y),'pt-BR')*(S.sortDir<0?1:-1);
+  });
+
+  var hh='<tr><th class="stick" data-k="rotulo"'+(S.sortKey==='rotulo'?' aria-sort="'+(S.sortDir<0?'descending':'ascending')+'"':'')+'>Estratégia'+
+    (S.sortKey==='rotulo'?'<span class="ar">'+(S.sortDir<0?'▼':'▲')+'</span>':'')+'</th>';
+  heads.forEach(function(h){
+    hh+='<th data-k="'+h.k+'" title="'+esc(h.t)+'"'+(S.sortKey===h.k?' aria-sort="'+(S.sortDir<0?'descending':'ascending')+'"':'')+'>'+
+        esc(h.l)+(S.sortKey===h.k?'<span class="ar">'+(S.sortDir<0?'▼':'▲')+'</span>':'')+'</th>';
+  });
+  th.innerHTML=hh+'</tr>';
+
+  var stats={};
+  if(cs) cs.forEach(function(m){
+    if(!m.dir) return;
+    var vs=rs.map(function(r){return r[m.k];}).filter(function(x){return x!==null&&x!==undefined;});
+    if(vs.length<2) return;
+    var lo=Math.min.apply(null,vs), hi=Math.max.apply(null,vs);
+    if(hi>lo) stats[m.k]={lo:lo,hi:hi,dir:m.dir};
+  });
+
+  if(!sorted.length){
+    tb.innerHTML='<tr><td class="name" colspan="'+(keys.length+1)+'"><p class="empty">Nenhuma execução combina com os filtros.</p></td></tr>';
+  } else {
+    tb.innerHTML=sorted.map(function(r){
+      var ctx=ctxOf(r,v);
+      var tds='<td class="name stick"><span class="nm"><i class="dot" style="background:'+cor(r.metodo)+'"></i>'+esc(r.rotulo)+'</span>'+
+        (ctx.length?'<span class="tags">'+ctx.map(function(c){return '<span class="tag">'+esc(c)+'</span>';}).join('')+'</span>':'')+'</td>';
+      keys.forEach(function(k){
+        if(cs){
+          var st=stats[k], cls='', sty='';
+          if(st && r[k]!==null && r[k]!==undefined){
+            var t=(r[k]-st.lo)/(st.hi-st.lo); if(st.dir<0) t=1-t;
+            cls=' class="hc'+(t>0.999?' best':'')+'"'; sty=' style="--t:'+t.toFixed(3)+'"';
+          }
+          tds+='<td'+cls+sty+'>'+fmtM(r,MBY[k])+'</td>';
+        } else {
+          tds+='<td>'+esc(fmtP(r[k]))+'</td>';
+        }
+      });
+      return '<tr data-i="'+DATA.indexOf(r)+'">'+tds+'</tr>';
+    }).join('');
+  }
+
+  Array.prototype.forEach.call(th.querySelectorAll('th'),function(node){
+    node.onclick=function(){
+      var k=node.getAttribute('data-k');
+      if(S.sortKey===k) S.sortDir*=-1; else { S.sortKey=k; S.sortDir=-1; }
+      render();
+    };
+  });
+}
+
+function openDrawer(i){
+  var r=DATA[i]; if(!r) return;
+  var h='<div class="dr-head"><div><h3><i class="dot" style="background:'+cor(r.metodo)+'"></i>'+esc(r.rotulo)+'</h3>'+
+    '<p class="dr-sub">'+esc(r.amostra+' · '+r.capital+' · '+r.janelas)+'</p>'+
+    '<p class="dr-sub" style="margin-top:2px!important">'+esc(r.inicio+' → '+r.fim)+' · '+fmt(r.obs_dias,0)+' dias</p></div>'+
+    '<button class="dr-close" type="button" aria-label="Fechar">✕</button></div>';
+  GRUPOS.forEach(function(g){
+    h+='<div class="dr-grp"><h4>'+esc(g)+'</h4><dl>'+METRICS.filter(function(m){return m.g===g;}).map(function(m){
+      return '<dt>'+esc(m.l)+(m.u?' ('+m.u+')':'')+'</dt><dd>'+fmt(r[m.k],m.d)+'</dd>';
+    }).join('')+'</dl></div>';
+  });
+  h+='<div class="dr-grp"><h4>Parâmetros</h4><dl>'+PARAMS.map(function(p){
+    return '<dt>'+esc(p[1])+'</dt><dd>'+esc(fmtP(r[p[0]]))+'</dd>';
+  }).join('')+'</dl></div>';
+  var d=el('drawer'); d.innerHTML=h; d.hidden=false; el('scrim').hidden=false;
+  requestAnimationFrame(function(){ d.classList.add('show'); el('scrim').classList.add('show'); });
+  d.querySelector('.dr-close').onclick=closeDrawer;
+  d.querySelector('.dr-close').focus();
+}
+function closeDrawer(){
+  var d=el('drawer'), s=el('scrim');
+  if(d.hidden) return;
+  d.classList.remove('show'); s.classList.remove('show');
+  setTimeout(function(){ d.hidden=true; s.hidden=true; },220);
+}
+
+function toast(msg){
+  var t=el('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('show'); },2400);
+}
+function copyTSV(){
+  var rs=rows(), cs=cols();
+  var keys = cs ? cs.map(function(m){return m.k;}) : PARAMS.map(function(p){return p[0];});
+  var lines=[['estrategia','metodo','amostra','capital','janelas'].concat(keys).join('\t')];
+  rs.forEach(function(r){
+    lines.push([r.rotulo,r.metodo,r.amostra,r.capital,r.janelas].concat(keys.map(function(k){
+      var x=r[k]; return (x===null||x===undefined)?'':String(x);
+    })).join('\t'));
+  });
+  try{
+    navigator.clipboard.writeText(lines.join('\n')).then(
+      function(){ toast('Tabela copiada — '+rs.length+(rs.length===1?' linha':' linhas')); },
+      function(){ toast('O navegador bloqueou a cópia'); });
+  }catch(e){ toast('O navegador bloqueou a cópia'); }
+}
+
+el('q').addEventListener('input',function(){ S.q=this.value; render(); });
+el('heat').addEventListener('change',function(){ S.heat=this.checked; render(); });
+el('copy').addEventListener('click',copyTSV);
+el('reset').addEventListener('click',function(){
+  S.amostra=DEFAULTS.amostra; S.capital=DEFAULTS.capital; S.janelas=DEFAULTS.janelas;
+  S.metodos=DEFAULTS.metodos.slice(); S.q=''; S.grupo=DEFAULTS.grupo;
+  S.sortKey=DEFAULTS.sortKey; S.sortDir=-1; S.chartMetric=DEFAULTS.chartMetric;
+  el('q').value=''; render();
+});
+el('scrim').addEventListener('click',closeDrawer);
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){ closeDrawer(); return; }
+  if(e.key==='Enter'||e.key===' '){
+    var t=e.target&&e.target.closest&&e.target.closest('.bar-row');
+    if(t){ e.preventDefault(); openDrawer(+t.getAttribute('data-i')); }
+  }
+});
+document.addEventListener('click',function(e){
+  if(!e.target.closest) return;
+  var t=e.target.closest('[data-i]');
+  if(t) openDrawer(+t.getAttribute('data-i'));
+});
+
+var tip=el('tip');
+document.addEventListener('mousemove',function(e){
+  var row=e.target.closest&&e.target.closest('.bar-row');
+  if(!row){ if(tip.className==='tip show') tip.className='tip'; return; }
+  var r=DATA[+row.getAttribute('data-i')], m=MBY[S.chartMetric];
+  tip.innerHTML='<strong>'+esc(r.rotulo)+'</strong><br>'+esc(m.l)+': <b>'+fmtM(r,m)+'</b><br>'+
+    '<span style="opacity:.72">'+esc(MLAB[r.metodo]+' · '+r.capital+' · '+r.janelas+' · '+r.amostra)+'</span>';
+  tip.className='tip show';
+  tip.style.left=Math.min(e.clientX+14, window.innerWidth-tip.offsetWidth-10)+'px';
+  tip.style.top=Math.max(8, Math.min(e.clientY+16, window.innerHeight-tip.offsetHeight-10))+'px';
+});
+document.addEventListener('mouseleave',function(){ tip.className='tip'; });
+
+/* ── aba Custos de transação ──────────────────────────────────────────── */
+var FAMS=[{k:'distancia',l:'Distância'},{k:'cointegracao',l:'Cointegração linear'},{k:'np',l:'Não paramétrica'}];
+var CENS=[{k:'rad',l:'Rad'},{k:'rad_metade',l:'Rad ÷ 2'},{k:'professor',l:'Professor'}];
+var CLAB={nenhum:'sem custos',rad:'Rad',rad_metade:'Rad ÷ 2',professor:'professor'};
+var CMET={ret:{k:'ret_anual_bruto_%',l:'Retorno médio anual',u:'%',d:2},
+          sharpe:{k:'sharpe',l:'Sharpe anualizado',u:'',d:2}};
+function corC(r){ return r.metodo==='np' ? 'var(--s-np)' : cor(r.metodo); }
+
+function cPivot(cap){
+  var P={}, out=[];
+  CUSTOS.forEach(function(r){
+    if(r.capital!==cap) return;
+    if(!P[r.rotulo]){ P[r.rotulo]={rotulo:r.rotulo,familia:r.familia,metodo:r.metodo,s:{}}; out.push(P[r.rotulo]); }
+    P[r.rotulo].s[r.esquema]=r;
+  });
+  out.sort(function(a,b){
+    var fa=FAMS.map(function(f){return f.k;}).indexOf(a.familia), fb=FAMS.map(function(f){return f.k;}).indexOf(b.familia);
+    if(fa!==fb) return fa-fb;
+    return (b.s.nenhum?b.s.nenhum['ret_anual_bruto_%']:0)-(a.s.nenhum?a.s.nenhum['ret_anual_bruto_%']:0);
+  });
+  return out.filter(function(p){ return p.s.nenhum; });
+}
+function gv(p,esq,k){ var r=p.s[esq]; return (r&&r[k]!==null&&r[k]!==undefined)?r[k]:null; }
+
+function renderCustos(){
+  seg(el('cSegCapital'),[{v:'committed capital',l:'Committed'},{v:'fully invested',l:'Fully invested'}],S.cCap,
+      function(v){ S.cCap=v; render(); });
+  seg(el('cSegCenario'),CENS.map(function(c){return {v:c.k,l:c.l};}),S.cCen,function(v){ S.cCen=v; render(); });
+  seg(el('cSegMetrica'),[{v:'ret',l:'Retorno a.a.'},{v:'sharpe',l:'Sharpe'}],S.cMet,function(v){ S.cMet=v; render(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.card[data-cen]'),function(c){
+    c.setAttribute('aria-current',String(c.getAttribute('data-cen')===S.cCen));
+  });
+
+  var ps=cPivot(S.cCap), m=CMET[S.cMet], cl=CLAB[S.cCen];
+  el('cCount').textContent=ps.length+' estratégias · '+(S.cCap==='committed capital'?'committed':'fully invested');
+  el('cChartTitle').textContent=m.l+': sem custos → '+cl;
+  el('cChartNote').textContent='1991–2025 · '+(S.cCap==='committed capital'?'committed capital':'fully invested');
+  var used={}; ps.forEach(function(p){ used[p.metodo]=1; });
+  var leg='<li><i class="ring"></i>sem custos</li><li><i class="disc"></i>com custos ('+esc(cl)+')</li>';
+  METODOS.concat([{k:'np',l:'Não paramétrica'}]).forEach(function(x){
+    if(used[x.k]) leg+='<li><i class="swatch" style="background:'+(x.k==='np'?'var(--s-np)':cor(x.k))+'"></i>'+esc(x.l)+'</li>';
+  });
+  el('cLegend').innerHTML=leg;
+
+  var vals=[];
+  ps.forEach(function(p){ [gv(p,'nenhum',m.k),gv(p,S.cCen,m.k)].forEach(function(x){ if(x!==null) vals.push(x); }); });
+  if(!vals.length){ el('cRows').innerHTML='<p class="empty">Sem dados.</p>'; return; }
+  var lo=Math.min(0,Math.min.apply(null,vals)), hi=Math.max(0,Math.max.apply(null,vals));
+  var pad=(hi-lo)*0.05||1; lo-=pad; hi+=pad;
+  function pc(x){ return (x-lo)/(hi-lo)*100; }
+  var ticks=niceTicks(lo,hi,5);
+  el('cAxis').innerHTML=ticks.map(function(t){ return '<i class="'+(t===0?'zero':'')+'" style="left:'+pc(t).toFixed(3)+'%"></i>'; }).join('');
+  el('cTicks').innerHTML=ticks.map(function(t){ return '<b style="left:'+pc(t).toFixed(3)+'%">'+fmt(t,m.d>1?1:m.d)+(m.u||'')+'</b>'; }).join('');
+  el('cAxisTitle').textContent=m.l+(m.u?' ('+m.u+')':'');
+
+  var h='', fam=null;
+  ps.forEach(function(p){
+    if(p.familia!==fam){ fam=p.familia; h+='<div class="db-grp">'+esc((FAMS.filter(function(f){return f.k===fam;})[0]||{l:fam}).l)+'</div>'; }
+    var g=gv(p,'nenhum',m.k), n=gv(p,S.cCen,m.k), c=corC(p);
+    var xg=pc(g), xn=(n===null?xg:pc(n)), a=Math.min(xg,xn), w=Math.abs(xg-xn);
+    var tit=p.rotulo+' — sem custos '+fmt(g,m.d)+(m.u||'')+' · '+cl+' '+fmt(n,m.d)+(m.u||'');
+    h+='<div class="db-row" title="'+esc(tit)+'">'+
+      '<div class="bar-lab">'+esc(p.rotulo)+'</div>'+
+      '<div class="db-track"><span class="db-line" style="left:'+a.toFixed(3)+'%;width:'+w.toFixed(3)+'%;background:'+c+'"></span>'+
+      '<span class="db-dot g" style="left:'+xg.toFixed(3)+'%"></span>'+
+      '<span class="db-dot" style="left:'+xn.toFixed(3)+'%;background:'+c+'"></span></div>'+
+      '<div class="db-val">'+fmt(g,m.d)+' → <b class="'+(n!==null&&n<0?'neg':'')+'">'+fmt(n,m.d)+(m.u||'')+'</b></div></div>';
+  });
+  el('cRows').innerHTML=h;
+
+  // resumo
+  var neg={}, partes=[];
+  CENS.forEach(function(cn){ neg[cn.k]=ps.filter(function(p){ var x=gv(p,cn.k,'ret_anual_bruto_%'); return x!==null&&x<=0; }).length; });
+  FAMS.forEach(function(f){
+    var q=ps.filter(function(p){return p.familia===f.k;});
+    if(!q.length) return;
+    var best=q.slice().sort(function(a,b){ return gv(b,S.cCen,'ret_anual_bruto_%')-gv(a,S.cCen,'ret_anual_bruto_%'); })[0];
+    partes.push('<b>'+esc(f.l)+'</b>: melhor com '+esc(cl)+' = '+esc(best.rotulo)+' ('+fmt(gv(best,S.cCen,'ret_anual_bruto_%'),2)+'% a.a., Sharpe '+fmt(gv(best,S.cCen,'sharpe'),2)+')');
+  });
+  el('cResumo').innerHTML='Com <b>Rad</b>, '+neg.rad+' de '+ps.length+' estratégias ficam com retorno médio ≤ 0; com <b>Rad ÷ 2</b>, '+
+    neg.rad_metade+'; com o <b>professor</b>, '+neg.professor+'. '+partes.join(' · ')+'.';
+
+  // tabela
+  var CO=[
+    {g:'Retorno médio anual (%)',k:'ret_anual_bruto_%',d:2,es:['nenhum','rad','rad_metade','professor']},
+    {g:'Sharpe',k:'sharpe',d:2,es:['nenhum','rad','rad_metade','professor']},
+    {g:'Drawdown máximo (%)',k:'drawdown_max_%',d:1,es:['nenhum',S.cCen]},
+    {g:'Com '+cl,k:null}
+  ];
+  var hh1='<tr><th class="stick" rowspan="2" style="cursor:default">Estratégia</th>', hh2='<tr>';
+  CO.forEach(function(c){
+    if(!c.k){ hh1+='<th class="grp" colspan="4">'+esc(c.g)+'</th>';
+      ['Custo anual (p.p.)','Equilíbrio (×)','Trades','Custo/trade (bps)'].forEach(function(t,i){ hh2+='<th class="'+(i===0?'gl':'')+'" style="cursor:default">'+esc(t)+'</th>'; });
+      return; }
+    hh1+='<th class="grp" colspan="'+c.es.length+'">'+esc(c.g)+'</th>';
+    c.es.forEach(function(e,i){ hh2+='<th class="'+(i===0?'gl ':'')+(e===S.cCen?'sel':'')+'" style="cursor:default">'+esc(CLAB[e])+'</th>'; });
+  });
+  el('cThead').innerHTML=hh1+'</tr>'+hh2+'</tr>';
+  el('cTbody').innerHTML=ps.map(function(p){
+    var t='<tr class="ccusto"><td class="name stick"><span class="nm"><i class="dot" style="background:'+corC(p)+'"></i>'+esc(p.rotulo)+'</span></td>';
+    CO.forEach(function(c){
+      if(!c.k){
+        var r=p.s[S.cCen]||{}, eq=r.equilibrio_mult;
+        var eqs=(eq===null||eq===undefined)?'—':(S.cCen==='professor'?fmt(eq*20,0)+' bps':fmt(eq,2)+'×');
+        t+='<td class="gl">'+fmt(r['custo_anual_%'],2)+'</td><td class="'+(eq!==null&&eq!==undefined&&eq<1?'neg':'')+'">'+eqs+'</td>'+
+           '<td>'+fmt(r.n_trades_custeados,0)+'</td><td>'+fmt(r.custo_medio_por_trade_bps,0)+'</td>';
+        return;
+      }
+      c.es.forEach(function(e,i){
+        var x=gv(p,e,c.k);
+        t+='<td class="'+(i===0?'gl ':'')+(e===S.cCen?'sel ':'')+(c.k!=='drawdown_max_%'&&x!==null&&x<0?'neg':'')+'">'+fmt(x,c.d)+'</td>';
+      });
+    });
+    return t+'</tr>';
+  }).join('');
+}
+
+function copyCustos(){
+  var ks=['ret_anual_bruto_%','sharpe','ret_anual_liquido_%','sharpe_liquido','volatilidade_anual_%','drawdown_max_%','custo_anual_%','equilibrio_mult','n_trades_custeados','custo_medio_por_trade_bps'];
+  var lines=[['estrategia','familia','capital','cenario'].concat(ks).join('\t')];
+  CUSTOS.forEach(function(r){
+    lines.push([r.rotulo,r.familia,r.capital,r.cenario].concat(ks.map(function(k){ var x=r[k]; return (x===null||x===undefined)?'':String(x); })).join('\t'));
+  });
+  try{
+    navigator.clipboard.writeText(lines.join('\n')).then(
+      function(){ toast('Tabela copiada — '+CUSTOS.length+' linhas'); },
+      function(){ toast('O navegador bloqueou a cópia'); });
+  }catch(e){ toast('O navegador bloqueou a cópia'); }
+}
+el('cCopy').addEventListener('click',copyCustos);
+
+function render(){
+  var vc=(S.view==='custos' && CUSTOS.length>0);
+  el('vistaPrincipal').hidden=vc; el('vistaCustos').hidden=!vc;
+  if(vc){ buildNTabs(); renderCustos(); save(); return; }
+  var rs=rows();
+  var noN=DATA.filter(function(r){return r.n_pares===S.nPares;}).length;
+  el('count').textContent=rs.length+' de '+noN+' execuções';
+  buildNTabs();
+  buildControls();
+  renderTiles(rs);
+  renderChart(rs);
+  renderTable(rs);
+  save();
+}
+render();
+})();
+</script>

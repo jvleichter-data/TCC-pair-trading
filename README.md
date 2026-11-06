@@ -26,16 +26,31 @@ A estratégia opera em duas fases que se alternam semestralmente:
 ```
 TCC-pair-trading/
 └── new_aproach/
-    ├── src/                          # Notebooks (executar nesta ordem)
-    │   ├── pipeline_base.ipynb       # 1. Constrói base_completa.csv
-    │   ├── gathering.ipynb           # 2. Recupera tickers delistados/renomeados
-    │   ├── cobertura_base.ipynb      # 3. Valida cobertura por semestre
-    │   ├── analise_fronteira.ipynb   # 4. Análise de qualidade na fronteira professor/extensão
-    │   ├── base_unificada.ipynb      # 5. Reconstrói base corrigindo fronteira por retornos
-    │   ├── validacao_dados.ipynb     # (auxiliar) Valida tickers com problema na coleta
-    │   ├── validacao_tipo_preco.ipynb# (auxiliar) Confirma tipo de preço da base do professor
-    │   ├── pairs_formation.ipynb     # 6. Formação de pares e seleção top-20
-    │   └── pairs_trading.ipynb       # 7. Negociação e análise de resultados
+    ├── src/
+    │   ├── database_formation/
+    │   │   ├── pipeline_base.ipynb    # 1. ÚNICO notebook da base: professor + extensão
+    │   │   │                          #    → base_completa.csv E base_unificada.csv
+    │   │   ├── gathering.ipynb        # (auxiliar) Recupera tickers delistados/renomeados
+    │   │   ├── cobertura_base.ipynb   # (auxiliar) Valida cobertura por semestre
+    │   │   ├── analise_fronteira.ipynb# (auxiliar) Qualidade na fronteira professor/extensão
+    │   │   ├── serie_rf.ipynb         # 2. Taxa livre de risco → rf_diario.csv
+    │   │   ├── validacao_dados.ipynb  # (auxiliar) Valida tickers com problema na coleta
+    │   │   └── validacao_tipo_preco.ipynb # (auxiliar) Confirma tipo de preço do orientador
+    │   ├── distance/
+    │   │   ├── pairs_formation.ipynb  # 3. Formação de pares e seleção top-20
+    │   │   └── pairs_trading.ipynb    # 4. Negociação e análise de resultados
+    │   ├── cointegration/             # Mesma estrutura, método da cointegração
+    │   ├── nonparametric/             # Cointegração não paramétrica (kernel local linear)
+    │   │   ├── kernel_np.py           #    estimador, CV unilateral, teste de cointegração NP
+    │   │   ├── formacao_utils.py      #    universo, SSD e seleção da formação própria
+    │   │   ├── valor_critico_np.ipynb #    valor crítico do teste por simulação
+    │   │   ├── pairs_formation_np_propria.ipynb  # formação própria (padrão)
+    │   │   ├── pairs_formation_np.ipynb          # alternativa: pares da linear
+    │   │   ├── pairs_trading_np.ipynb
+    │   │   ├── diagnostico_wang_phillips.ipynb  # teste de linearidade (diagnóstico)
+    │   │   ├── especificacao_np.py    #    estatística de Wang & Phillips (2012) + bootstrap
+    │   │   └── DECISOES.md            #    decisões de método, validação e resultados
+    │   └── validation/                # Diagnósticos, contrafactuais e relatórios
     │
     ├── data_bases/
     │   ├── base_unificada.csv             # Base reconstruída por retornos 1990–2025 (~62 MB) ← usar esta
@@ -90,19 +105,48 @@ TCC-pair-trading/
 
 ## Notebooks
 
-### `pipeline_base.ipynb` — Construção da base
+### `pipeline_base.ipynb` — Construção da base (notebook único)
 
-Constrói `extensao_2016_2025.csv` e `base_completa.csv` em 7 partes:
+Regenera **todas** as bases, do `Pt.csv` do orientador aos dois arquivos finais. Antes isso
+estava dividido entre `pipeline_base` e `base_unificada`; os dois foram fundidos em
+2026-09-13.
 
-| Parte | O que faz |
-|-------|-----------|
-| 1 | Consolida base do orientador — alinha datas reais de pregão NYSE via MSFT |
-| 2 | Confirma tipo de preço da base do professor (adj_close) |
-| 3 | Carrega composição histórica e lista tickers necessários (2016–2025) |
-| 4 | Checkpoint — identifica tickers já coletados |
-| 5 | Baixa adj_close faltante do Yahoo Finance (`auto_adjust=True`) |
-| 6 | Constrói `extensao_2016_2025.csv` com membership mask |
-| 7 | Concatena professor + extensão em `base_completa.csv` |
+| Parte | O que faz | Saída |
+|-------|-----------|-------|
+| 0 | Flags de construção — todas as decisões num lugar só | — |
+| 1 | Bloco do orientador: datas reais, correções de qualidade, máscara opcional | `professor_consolidado.csv` |
+| 2 | Extensão 2016–2025: composição do índice, coleta, montagem | `extensao_2016_2025.csv` |
+| 3 | Concatenação direta | `base_completa.csv` |
+| 4 | Emenda por retornos na fronteira | `base_unificada.csv` |
+| 5 | Validação numérica das duas | — |
+
+**Flags principais** (Parte 0):
+
+| Flag | Padrão | O que faz |
+|---|---|---|
+| `CORRIGIR_SERIES_DESLOCADAS` | `True` | Realinha `SPGI`, `MRO`, `KATE`, `ARB`, `BF_B` |
+| `PRECO_ZERO_VIRA_NAN` | `True` | 8.564 células com preço 0 viram `NaN` |
+| `RECUPERAR_ULTIMO_PREGAO` | `True` | Usa as 6.426 linhas do `Pt.csv` (recupera 2015-12-31) |
+| `APLICAR_MASCARA_INDICE` | `True` | Restringe ao `ticker_sem.csv` — **ver aviso abaixo** |
+| `BAIXAR_FALTANTES` | `False` | Coleta do Yahoo; desligado para rodar offline |
+| `REMOVER_TRECHOS_INTERPOLADOS` | `True` | Apaga trechos de preço interpolados (47 séries, 0,40% das células) |
+| `LIMITE_SALTO_FRONTEIRA` | `0.25` | Trava a emenda quando a âncora está em outra convenção |
+
+> ⚠️ **`APLICAR_MASCARA_INDICE`** tem dois efeitos opostos e é a decisão metodológica
+> central do projeto.
+>
+> *Contra:* ligar **não reproduz o artigo do orientador**, que usa as 1.100 séries do
+> `Pt.csv` com o único filtro de *"stocks listed during the formation period"*. Medido:
+> `False` → 3,015% a.a. / Sharpe 0,705 (artigo: 3,600 / 0,703); `True` → ~1,3% / ~0,27.
+> E essa queda não é remoção de viés: um corte **aleatório** do mesmo tamanho dá 0,92%,
+> 2,04% e 3,08% em três sorteios — é efeito de tamanho de universo.
+>
+> *A favor:* ligar remove dado fabricado, e isso um corte aleatório não faz. Os trechos
+> interpolados do `Pt.csv` são justamente os períodos em que a empresa não integrava o
+> índice. A contaminação dos pares selecionados cai de 3,8% para 0,7% só com a máscara
+> (e para 0,0% somando o `REMOVER_TRECHOS_INTERPOLADOS`).
+>
+> Ver [`src/validation/revisao_completa_2026-09-13.md`](new_aproach/src/validation/revisao_completa_2026-09-13.md) § 1.1 e § 4.3.
 
 ### `gathering.ipynb` — Recuperação de tickers problemáticos
 
@@ -124,13 +168,17 @@ Para cada ticker na interseção professor ∩ extensão, calcula o salto percen
 **Parte 2 — Sobreposição 2015:**
 Coleta adj_close de 2015 para todos os tickers da interseção e calcula o ratio `nosso_adj_close / prof_adj_close` para cada data. Se o ratio for constante (CV ≈ 0%), confirma que ambas as séries são adj_close com a mesma estrutura, apenas com bases de normalização diferentes. Resultado em `sobreposicao_2015_tabela.csv`.
 
-### `base_unificada.ipynb` — Correção da fronteira
+### A emenda da fronteira (Parte 4 do `pipeline_base.ipynb`)
 
-Resolve a descontinuidade de adj_close na fronteira 2015/S2 → 2016/S1: as duas bases foram coletadas em datas diferentes (~2015 e ~2026), de modo que splits ocorridos no intervalo (ex: AAPL 4:1 em 2020) introduzem um fator constante de escala. A correção reconstrói a extensão via retornos diários ancorados no último preço da base do professor:
+Resolve a descontinuidade de adj_close na fronteira 2015/S2 → 2016/S1: as duas metades foram coletadas em datas diferentes (~2015 e ~2026), de modo que splits ocorridos no intervalo (ex: AAPL 4:1 em 2020) introduzem um fator constante de escala. A correção reescala a extensão por uma constante por ticker, ancorada no último preço do orientador:
 
-$$P_{\text{uni}}(t) = P_{\text{prof}}(t_{\text{fim}}) \times \frac{P_{\text{ext}}(t)}{P_{\text{ext}}(t_0)}$$
+$$P_{\text{uni}}(t) = P_{\text{ext}}(t) \times \frac{P_{\text{prof}}(t_f)}{P_{\text{sobr}}(t_f)}$$
 
-Isso preserva todos os retornos diários da extensão intactos (correlação = 1.0000000000) e elimina o salto artificial. Saída: `base_unificada.csv`.
+onde $t_f$ é o último pregão em que o orientador tem preço para aquele ticker e $P_{\text{sobr}}(t_f)$ é o preço da mesma data **na convenção da extensão**. Isso preserva todos os retornos diários da extensão (correlação 1,0; desvio máximo 4e-16) e elimina o salto.
+
+A âncora vem, em ordem: (1) do **próprio arquivo** de `prices/` que gera a extensão — eles começam em 2015-07, então já contêm $t_f$; (2) de `prices_sobreposição/`; (3) do primeiro dia da extensão, forçando retorno zero. A ordem importa: `prices_sobreposição` foi baixada em data diferente de `prices/` e diverge em 34 dos 465 tickers da interseção.
+
+Resultado na fronteira (2016-01-04, 465 tickers): `|r| > 20%` cai de **254** na `base_completa` para **1** na `base_unificada`.
 
 ### `pairs_formation.ipynb` — Formação de pares
 
@@ -151,6 +199,30 @@ Simula a fase de negociação sobre os pares selecionados:
 - **Capital comprometido (Gatev):** todos os N pares entram no denominador do portfólio, mesmo os inativos. Isso dilui o retorno nos períodos sem posição — metodologia fiel ao artigo original.
 - **Filtro de outliers:** pares com retorno diário máximo > 30% são descartados (identifica penny stocks OTC com preços corrompidos na base, ex: AVATQ ~$0,0001).
 - Saídas: `negociacao_pares.csv` (resultado por par) e `negociacao_portfolio.csv` (série temporal do portfólio)
+
+---
+
+### `nonparametric/` — Cointegração não paramétrica (terceiro método)
+
+Troca a reta da cointegração por uma curva desconhecida, $Q_{dep} = g(Q_{indep}) + u$, estimada
+por **regressão local linear** com kernel gaussiano. A inclinação local $\hat g'(x)$ é o hedge
+ratio na entrada. Base teórica: slides *Cointegração Não Paramétrica via Kernel* (ECO 02091,
+FCE/UFRGS) e Wang & Phillips.
+
+- **Formação própria:** 300 pares de menor SSD; para cada um, a curva nas duas direções com bandwidth
+  por validação cruzada **unilateral** (só o passado, gap de 20 pregões; grade com $h = \infty$, a reta);
+  o par entra se o ADF dos erros fora da amostra passar de um **valor crítico simulado** (−3,52,
+  pares reais com os dias embaralhados) e o β local mediano for ≥ 0,50; os 20 primeiros em ordem de SSD.
+- **Negociação:** a curva é re-estimada todo dia com os dados até $t-1$ (formação + negociação
+  decorrida), porque ~40% dos dias de negociação caem fora do suporte da formação. Sinal em
+  $|z| > 2$; veto quando não há dado antigo perto do preço atual; na entrada congela a tangente à
+  curva e fecha quando o spread contra ela cruza a média. Pernas na razão 1 : β dos slides, com a maior
+  perna em $1; só abre com 0,50 ≤ β ≤ 2.
+- **Resultado (sem custos):** Sharpe 1,11 em 1991–2015 e 0,87 em 1991–2025 (linear: 0,93 e 0,66; com a
+  mesma convenção de pernas, 1,02 e 0,71). A diferença não é estatisticamente significativa (p ≈ 0,24).
+
+Todas as decisões, a validação (o motor reproduz a linear estática em 1e-15) e os primeiros
+resultados estão em [`DECISOES.md`](new_aproach/src/nonparametric/DECISOES.md).
 
 ---
 
@@ -182,14 +254,24 @@ Correções aplicadas durante a análise: COL, HAR, CHK (reverse split falência
 ## Como reproduzir
 
 ```
-1. pipeline_base.ipynb        → gera extensao_2016_2025.csv e base_completa.csv
-2. gathering.ipynb             → recupera tickers problemáticos (rodar partes A–J)
-3. cobertura_base.ipynb        → valida cobertura e gera tickers_ausentes.csv
-4. analise_fronteira.ipynb     → analisa qualidade na fronteira e sobreposição 2015
-5. base_unificada.ipynb        → corrige fronteira por retornos e gera base_unificada.csv
-6. serie_rf.ipynb              → emenda a renda fixa do professor com a T-bill do FRED → rf_diario.csv
-7. pairs_formation.ipynb       → seleciona pares e salva pares_formados.csv
-8. pairs_trading.ipynb         → simula negociação e gera negociacao_pares.csv / negociacao_portfolio.csv
+database_formation/
+  1. pipeline_base.ipynb   → professor_consolidado.csv, extensao_2016_2025.csv,
+                             base_completa.csv E base_unificada.csv  (notebook único)
+  2. serie_rf.ipynb        → rf_diario.csv (Rf do professor + T-bill do FRED)
+
+distance/  (e cointegration/, mesma sequência)
+  3. pairs_formation.ipynb → pares_formados.csv
+  4. pairs_trading.ipynb   → negociacao_pares.csv, negociacao_portfolio.csv
+
+nonparametric/
+  5. valor_critico_np.ipynb           → valor_critico_np.json      (~12 min, só ao mudar o teste)
+  6. pairs_formation_np_propria.ipynb → pares_formados_np_propria.csv (~45 min, 3 processos)
+  7. pairs_trading_np.ipynb           → negociacao_*_np.csv        (~1,5 min)
+
+auxiliares — só se for recoletar dados ou reauditar:
+  gathering.ipynb          → recupera tickers delistados/renomeados (partes A–J)
+  cobertura_base.ipynb     → valida cobertura e gera tickers_ausentes.csv
+  analise_fronteira.ipynb  → qualidade na fronteira e sobreposição 2015
 ```
 
 > ⚠️ `data_bases/prices/RF.csv` **não é renda fixa** — é a ação *Regions Financial* (ticker `RF`, constituinte do S&P 500). A taxa livre de risco vem de `professor/Rf.csv`, estendida por `serie_rf.ipynb`.
