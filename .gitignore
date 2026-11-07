@@ -30,3 +30,6 @@ new_aproach/src/visualization/resultados_consolidado.html
 # Versão em R: a base de preços (~55 MB) fica fora do repositório e é enviada à parte;
 # o rf_diario.csv (pequeno) e o README da pasta entram.
 R/data_bases/base_unificada.csv
+
+# Cópias das saídas antes do retorno em excesso (07/11/2026) — backup local, como _backups/
+new_aproach/src/nonparametric/output/resultados/pre_rf_*/
