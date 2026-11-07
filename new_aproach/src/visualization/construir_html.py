@@ -13,7 +13,7 @@ A chave de deduplicação é (rotulo, capital, amostra, n_pares), então reexecu
 
 Uso:  python construir_html.py
 """
-import io, os, sys, json, math
+import io, os, sys, json, math, glob
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', line_buffering=True)
 import pandas as pd
 
@@ -24,10 +24,17 @@ NOVO = os.path.join(SAIDA, 'resultados_npares_parcial.csv')
 DELTA = os.path.join(SAIDA, 'resultados_delta_parcial.csv')
 SEM_MEDIA = os.path.join(SAIDA, 'resultados_sem_media_parcial.csv')   # etapa 2e
 DIN_RETESTE = os.path.join(SAIDA, 'resultados_dinamica_reteste_parcial.csv')   # etapa 2f
+NP_PARCIAIS = sorted(glob.glob(os.path.join(SAIDA, 'resultados_np_parcial*.csv')))   # etapa 2g (07/11)
 TPL = os.path.join(AQUI, 'templates', 'painel.tpl.html')
 HTML = os.path.join(AQUI, 'resultados_consolidado.html')
 UNIFICADO = os.path.join(SAIDA, 'resultados_todos_npares.csv')
 CUSTOS = os.path.join(os.path.dirname(AQUI), 'validation', 'custos', 'output', 'resultados_custos_todos.csv')
+ESQUEMAS_PAINEL = ('nenhum', 'professor')
+# rótulos do NP na aba de custos = os das abas principais (etapa 2g)
+ROTULOS_NP = {'NP · maior perna, 0,50 ≤ β ≤ 2 (padrão)': 'Não paramétrica',
+              'NP · maior perna, β ≥ 0,50': 'Não paramétrica · maior perna, sem teto',
+              'NP · slides 1:β, β ≥ 0,50': 'Não paramétrica · slides 1:β',
+              'NP · Rad, 0,50 ≤ β ≤ 2': 'Não paramétrica · Rad, β ≤ 2'}
 COLS_CUSTOS = ['rotulo', 'familia', 'metodo', 'capital', 'amostra', 'cenario', 'esquema',
                'ret_anual_bruto_%', 'ret_anual_liquido_%', 'sharpe', 'sharpe_liquido',
                'volatilidade_anual_%', 'drawdown_max_%', 'custo_anual_%', 'equilibrio_mult',
@@ -35,14 +42,25 @@ COLS_CUSTOS = ['rotulo', 'familia', 'metodo', 'capital', 'amostra', 'cenario', '
 
 CHAVE = ['rotulo', 'capital', 'amostra', 'n_pares']
 
+# 07/11/2026: painel em retorno em excesso (AJUSTE_RF, rf descontada de cada perna). Quando a rodada
+# validation/pipeline/roda_painel_rf.py + junta_rf.py existe, ela substitui as fontes acima.
+RF_DIR = os.path.join(os.path.dirname(AQUI), 'validation', 'output', 'resultados_rf')
+RF_PAINEL = os.path.join(RF_DIR, 'resultados_todos_rf.csv')
+RF_CUSTOS = os.path.join(RF_DIR, 'custos_todos_rf.csv')
+
 
 def carrega():
+    if os.path.exists(RF_PAINEL):
+        R = pd.read_csv(RF_PAINEL, encoding='utf-8-sig')
+        R['n_pares'] = R['n_pares'].astype(int)
+        return R.sort_values(['n_pares', 'amostra', 'capital', 'ret_anual_bruto_%'],
+                             ascending=[True, True, True, False]).reset_index(drop=True)
     d = pd.read_csv(BASE, encoding='utf-8-sig')
     if 'n_pares' not in d.columns:
         d['n_pares'] = 20
     d['n_pares'] = d['n_pares'].fillna(20).astype(int)
     partes = [d]
-    for extra in (NOVO, DELTA, SEM_MEDIA, DIN_RETESTE):
+    for extra in (NOVO, DELTA, SEM_MEDIA, DIN_RETESTE, *NP_PARCIAIS):
         if os.path.exists(extra):
             n = pd.read_csv(extra, encoding='utf-8-sig')
             if len(n):
@@ -77,13 +95,19 @@ def para_json(R):
 
 def main():
     R = carrega()
-    R.to_csv(UNIFICADO, index=False, encoding='utf-8-sig')
+    if not os.path.exists(RF_PAINEL):
+        R.to_csv(UNIFICADO, index=False, encoding='utf-8-sig')
 
     js = para_json(R)
     if '</script' in js or '<!--' in js:
         raise SystemExit('payload contém sequência que quebraria o <script>')
 
-    C = pd.read_csv(CUSTOS, encoding='utf-8-sig') if os.path.exists(CUSTOS) else pd.DataFrame(columns=COLS_CUSTOS)
+    fonte_c = RF_CUSTOS if os.path.exists(RF_CUSTOS) else CUSTOS
+    C = pd.read_csv(fonte_c, encoding='utf-8-sig') if os.path.exists(fonte_c) else pd.DataFrame(columns=COLS_CUSTOS)
+    # 07/11/2026: o TCC segue só o critério do professor (20 bps por trade); Rad fica no CSV, fora do painel
+    C = C[C['esquema'].isin(ESQUEMAS_PAINEL)].copy() if len(C) else C
+    if len(C):
+        C['rotulo'] = C['rotulo'].replace(ROTULOS_NP)
     js_c = para_json(C[[c for c in COLS_CUSTOS if c in C.columns]])
     if '</script' in js_c or '<!--' in js_c:
         raise SystemExit('payload de custos contém sequência que quebraria o <script>')
@@ -94,7 +118,8 @@ def main():
             raise SystemExit('marcador %s ausente em %s' % (marca, TPL))
     io.open(HTML, 'w', encoding='utf-8', newline='\n').write(
         tpl.replace('__CUSTOS__', js_c).replace('__DATA__', js))
-    print('custos: %d linhas | %s' % (len(C), os.path.basename(CUSTOS)))
+    print('fonte do painel: %s' % (RF_PAINEL if os.path.exists(RF_PAINEL) else 'CSVs anteriores (sem AJUSTE_RF)'))
+    print('custos: %d linhas | %s' % (len(C), os.path.basename(fonte_c)))
 
     print('linhas: %d | %s' % (len(R), os.path.basename(UNIFICADO)))
     for n, g in R.groupby('n_pares'):
