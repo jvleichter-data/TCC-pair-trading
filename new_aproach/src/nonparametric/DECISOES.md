@@ -1,8 +1,12 @@
 # Método 3 — Cointegração não paramétrica: decisões, validação e primeiros resultados
 
-**Versão:** 4 · **Data:** 2026-11-02 · **Estado:** primeira versão rodando de ponta a ponta;
+**Versão:** 5 · **Data:** 2026-11-07 · **Estado:** primeira versão rodando de ponta a ponta;
 todas as decisões abaixo estão abertas para discussão. **Configuração atual e novidades de
 18 a 22/10 na § 6 e § 7** (CV unilateral, piso de β, veto de suporte desligado).
+
+> **07/11/2026 — retorno em excesso (§ 10).** Desde 07/11 o notebook desconta a rf de cada perna
+> (`AJUSTE_RF = True`). **A § 9 está em retorno em excesso.** As §§ 4–8 ficam como registro das rodadas
+> da época, em P&L só de preços; a § 10 traz, para cada rodada citada nelas e refeita, o valor antigo e o novo.
 
 Cada decisão traz **quem decidiu**:
 
@@ -779,24 +783,25 @@ simétrica, fixada pelo princípio; o teto não muda o resultado com esta conven
 `'slides'` seguem como opção). O padrão reproduz a variante testada (Δ = 0,0); saídas Rad preservadas
 como `*_np_dim_rad*.csv`.
 
-| NP, formação própria | Sharpe 91–15 | vol 91–15 | MDD 91–15 | Sharpe 16–25 | Sharpe 91–25 | pares \|ret\| > 0,5 |
+| NP, formação própria (retorno em excesso) | Sharpe 91–15 | vol 91–15 | MDD 91–15 | Sharpe 16–25 | Sharpe 91–25 | pares \|ret\| > 0,5 |
 |---|---|---|---|---|---|---|
-| Rad, β ≥ 0,50 (anterior) | 0,90 | 4,37% | −13,4% | 0,34 | 0,72 | 88 |
-| Rad, 0,50 ≤ β ≤ 2 (opção a) | 0,95 | 4,22% | −14,2% | 0,31 | 0,74 | 78 |
-| slides 1 : β, β ≥ 0,50 | 0,95 | 4,26% | −10,6% | 0,46 | 0,80 | 65 |
-| maior perna, β ≥ 0,05 | 1,05 | 3,73% | −10,5% | 0,40 | 0,83 | 38 |
-| maior perna, β ≥ 0,50 | 1,11 | 3,55% | −9,4% | 0,40 | 0,87 | 36 |
-| **maior perna, 0,50 ≤ β ≤ 2 (padrão)** | **1,11** | **3,53%** | **−9,7%** | **0,38** | **0,87** | 36 |
+| Rad, β ≥ 0,50 (anterior) | 1,00 | 4,37% | −11,5% | 0,41 | 0,81 | 81 |
+| Rad, 0,50 ≤ β ≤ 2 (opção a) | 1,05 | 4,22% | −12,5% | 0,38 | 0,82 | 72 |
+| slides 1 : β, β ≥ 0,50 | 1,01 | 4,26% | −10,6% | 0,51 | 0,86 | 61 |
+| maior perna, β ≥ 0,05 | 1,12 | 3,73% | −9,2% | 0,45 | 0,90 | 35 |
+| maior perna, β ≥ 0,50 | 1,18 | 3,55% | −8,4% | 0,44 | 0,93 | 34 |
+| **maior perna, 0,50 ≤ β ≤ 2 (padrão)** | **1,18** | **3,53%** | **−8,8%** | **0,42** | **0,93** | 34 |
 
 **A linear com as mesmas convenções** (em memória, notebook atual, sem alterar o notebook nem as saídas):
-Rad 0,93 / 0,66 (1991–2015 / 1991–2025); maior perna 1,02 / 0,71; slides 1,02 / 0,70. O problema era da
+Rad 1,02 / 0,73 (1991–2015 / 1991–2025); maior perna 1,09 / 0,76; slides 1,09 / 0,76 (excesso; antes de 07/11:
+0,93 / 0,66, 1,02 / 0,71, 1,02 / 0,70). O problema era da
 convenção de Rad, não do método: a linear também melhora. **Recomendação (decisão do usuário):** adotar
 a mesma convenção na cointegração linear (estática e dinâmica), para a comparação entre métodos não
 misturar dimensionamento com método.
 
 ⚠️ **Saídas gravadas da linear desatualizadas:** `cointegration/output/resultados/negociacao_*_coint.csv`
 são de 14/09, antes da mudança de `SIGMA_MIN` (0,005 → 0,01, 22/09) no notebook. O notebook atual dá
-Sharpe 0,934 em 1991–2015 (o arquivo, 0,937). As comparações desta seção usam as rodadas em memória do
+Sharpe 0,934 em 1991–2015 só com preços (o arquivo, 0,937); em excesso, 1,018. As comparações desta seção usam as rodadas em memória do
 notebook atual (`lin_<conv>_<período>_*.csv`). Regenerar as saídas da linear é recomendado.
 
 ### 9.2 Significância da diferença de Sharpe — [assumida: método]
@@ -807,14 +812,15 @@ Memmel (2003) como referência. Validado em séries simuladas de mesmo Sharpe: r
 
 | NP × linear (mesma convenção maior perna) | dif. Sharpe | p (blocos 21) | IC 95% |
 |---|---|---|---|
-| 1991–2025 | +0,16 | 0,24 | [−0,10; +0,42] |
-| 1991–2015 | +0,06 | 0,74 | [−0,28; +0,39] |
-| 2016–2025 | +0,35 | 0,08 | [−0,05; +0,75] |
+| 1991–2025 | +0,16 | 0,22 | [−0,10; +0,42] |
+| 1991–2015 | +0,06 | 0,73 | [−0,27; +0,39] |
+| 2016–2025 | +0,35 | 0,09 | [−0,04; +0,76] |
 
-Contra a linear na convenção oficial dela (Rad): 1991–2025 +0,21 (p = 0,12); 2016–2025 +0,35 (p = 0,08).
+Contra a linear na convenção oficial dela (Rad): 1991–2025 +0,20 (p = 0,15); 2016–2025 +0,35 (p = 0,09).
+(Retorno em excesso, 07/11. Antes, só preços: +0,16 p = 0,24; +0,06 p = 0,74; +0,35 p = 0,08; contra Rad +0,21 p = 0,12.)
 **Nenhuma diferença é significativa a 5%.** Conclusão para o TCC: o NP é **comparável** à linear, com
-indício (p ≈ 0,08) de vantagem depois de 2016 — período fortemente influenciado por 2020. Correlação
-diária entre as duas estratégias ≈ 0,66: são estratégias parecidas, o que torna difícil separá-las.
+indício (p ≈ 0,09) de vantagem depois de 2016 — período fortemente influenciado por 2020. Correlação
+diária entre as duas estratégias ≈ 0,67: são estratégias parecidas, o que torna difícil separá-las.
 
 ### 9.3 Poder do teste: avaliar a partir do dia 63 — [usuário: rodar; resultado: manter 126]
 
@@ -829,7 +835,7 @@ Simulação refeita com `T_MIN_UNILATERAL = 63` (`output/valor_critico_t63/`) e 
 | candidatos aprovados no teste | 11,8% | 19,5% |
 | janelas com 20 pares | 90% | 99,8% |
 | pares em comum com a linear | 24% | 42% |
-| Sharpe 1991–2015 / 2016–2025 / 1991–2025 | **1,11 / 0,38 / 0,87** | 1,04 / 0,21 / 0,77 |
+| Sharpe 1991–2015 / 2016–2025 / 1991–2025 (excesso) | **1,18 / 0,42 / 0,93** | 1,11 / 0,25 / 0,83 |
 
 **Mais poder não melhorou a negociação.** O teste mais poderoso aprova mais pares, mais parecidos com os
 da linear (42% em comum), e o resultado converge para o da linear (dif. 1991–2025: +0,06, p = 0,57). O
@@ -864,8 +870,8 @@ extensão a erros serialmente correlacionados não está provada. Nossos spreads
   dessas curvas não são significativamente diferentes da reta**. A CV adota curvas bem mais do que um teste
   formal justifica.
 - Pares da linear (8.139): rejeitam a reta 9,9%. **Onde W&P rejeita a reta, o NP perde da linear** (NP
-  +1,30% × linear +2,50% por par; diferença −0,012), onde não rejeita, empatam (−0,0003). Correlação de
-  postos entre Z_n e a vantagem NP − linear: −0,008.
+  +1,51% × linear +2,66% por par, em excesso; diferença −0,012), onde não rejeita, empatam (−0,0003). Correlação de
+  postos entre Z_n e a vantagem NP − linear: −0,006.
 - **Leitura:** não linearidade estatisticamente significativa na formação não vira vantagem na negociação
   — tende a ser o contrário (slide 29: "não linearidade estatística ≠ alpha econômico"). Hipótese: uma
   curva significativa na formação muitas vezes reflete uma mudança de regime dentro da janela, que não
@@ -881,3 +887,93 @@ extensão a erros serialmente correlacionados não está provada. Nossos spreads
   `validation/auditoria/nonparametric/artefato/monta_v4.py` (+ `dados_artefato_v4.py`,
   `dados_formacao_tab_v4.py`, `smoke_v4.js`; `index_v4.html` é a página publicada).
 - Relatório da rodada: `RELATORIO_2026-11-02.md`.
+
+---
+
+## 10. Retorno em excesso sobre a rf (2026-11-07) — [usuário: "descontar rf das duas pernas"]
+
+**O que mudou.** O retorno de um par passa a ser o **excesso exato**: cada perna rende o próprio retorno menos a rf,
+`excesso_t = P&L_t − rf_t × (V_comprada − V_vendida)_(t−1)`. Com pernas de mesmo valor a rf se anula (distância);
+no NP e na linear as pernas não valem o mesmo. No NP, com o β do trade, o caixa líquido no início do dia é
+`−posição × escala × (Q_dep − β·Q_indep)_(t−1)`. Parâmetro `AJUSTE_RF = True` (padrão) + `RF_DIARIO` em
+`pairs_trading_np.ipynb`; `False` volta ao P&L só de preços (a convenção de Rad et al. 2016, § 5.1, que não
+ajusta). A mesma regra vale nos três métodos. Análise e alternativas: `src/validation/excesso/PROPOSTA_RF.md`.
+
+**Por que o retorno sobe.** Em boa parte dos trades o par vende mais do que compra (no NP padrão, o caixa líquido
+médio é ≈ −23% da posição): sobra caixa, e ele rende rf. Quanto mais o dimensionamento vende além do que compra,
+maior o ganho: Rad, que vende 1/β com β pequeno, é a convenção que mais sobe (+0,4 p.p. a.a.); as configurações
+antigas com β ≥ 0,05 sobem até +1,1 p.p. (LOO) **Ressalva para o texto:** creditar a rf inteira no caixa da venda supõe
+receber integralmente o juro sobre o produto da venda a descoberto (*short rebate*); na prática ele é menor. A
+variante conservadora (não creditar rf no caixa que sobra) está descrita em `PROPOSTA_RF.md` e não foi rodada.
+
+**Como foi refeito** (`validation/auditoria/nonparametric/refaz_excesso.py`, log `logs/excesso.log`): as rodadas
+citadas na § 9 e no artefato, e as principais das §§ 6–8, foram reexecutadas com **todos os parâmetros explícitos**
+(os padrões do notebook mudaram desde então). **Conferência:** nas 33 rodadas do NP os sinais
+(`eventos_sinal_np*.csv`) e os trades por par (`n_trades`, `n_fechados`) saíram **idênticos** aos da rodada
+antiga; nas 6 da linear, os trades por par. Só o retorno mudou. Com `AJUSTE_RF = False` o notebook reproduz o
+retorno antigo com diferença < 1e-6 (`validation/excesso/val_np.txt`). Saídas antigas preservadas em
+`output/resultados/pre_rf_2026-11-07/` e `validation/auditoria/nonparametric/pre_rf_2026-11-07/`.
+
+**Antes → depois** (Sharpe; média aritmética anual do retorno diário; committed capital):
+
+| rodada | período | Sharpe | média a.a. | dif. (p.p.) |
+|---|---|---|---|---|
+| padrão atual: formação própria, maior perna, 0,50 ≤ β ≤ 2 (`SUFIXO=''`) | 91–15 | 1,11 → **1,18** | 3,92% → 4,17% | +0,24 |
+| padrão atual (`_completo`) | 91–25 | 0,86 → **0,93** | 3,24% → 3,46% | +0,23 |
+| padrão, teste a partir do dia 63 (§ 9.3) (`_t63`) | 91–15 | 1,04 → **1,11** | 3,66% → 3,89% | +0,23 |
+| idem (`_t63_completo`) | 91–25 | 0,77 → **0,82** | 2,88% → 3,09% | +0,22 |
+| formação própria, Rad, β ≥ 0,50 (padrão 24/10–02/11) (`_dim_rad`) | 91–15 | 0,90 → **1,00** | 3,94% → 4,38% | +0,44 |
+| idem (`_dim_rad_completo`) | 91–25 | 0,72 → **0,81** | 3,27% → 3,68% | +0,41 |
+| Rad, 0,50 ≤ β ≤ 2 (`_dim_rad_cap2`) | 91–15 | 0,95 → **1,05** | 4,03% → 4,42% | +0,39 |
+| idem (`_dim_rad_cap2_completo`) | 91–25 | 0,74 → **0,82** | 3,29% → 3,66% | +0,37 |
+| slides 1 : β, β ≥ 0,50 (`_dim_slides`) | 91–15 | 0,95 → **1,01** | 4,04% → 4,32% | +0,28 |
+| idem (`_dim_slides_completo`) | 91–25 | 0,80 → **0,85** | 3,47% → 3,73% | +0,26 |
+| maior perna, β ≥ 0,50 (`_dim_mp`) | 91–15 | 1,11 → **1,18** | 3,94% → 4,19% | +0,25 |
+| idem (`_dim_mp_completo`) | 91–25 | 0,87 → **0,93** | 3,27% → 3,50% | +0,23 |
+| maior perna, β ≥ 0,05 (`_dim_mp_b005`) | 91–15 | 1,05 → **1,12** | 3,90% → 4,17% | +0,28 |
+| idem (`_dim_mp_b005_completo`) | 91–25 | 0,83 → **0,90** | 3,24% → 3,49% | +0,25 |
+| v2 (22/10): pares da linear, Rad, β ≥ 0,50, sem veto (`_pares_linear`) | 91–15 | 0,85 → **0,94** | 3,39% → 3,74% | +0,35 |
+| idem (`_pares_linear_completo`) | 91–25 | 0,62 → **0,69** | 2,60% → 2,93% | +0,33 |
+| v2 com μ, σ re-estimados, janela expandida (§ 7.5) (`_ms_exp`) | 91–15 | 0,78 → **0,87** | 3,08% → 3,43% | +0,35 |
+| v2 com μ, σ re-estimados, últimos 126 dias (§ 7.5) (`_ms_mov`) | 91–15 | 0,76 → **0,85** | 3,00% → 3,35% | +0,35 |
+| sem veto de suporte, β ≥ 0,05 (§ 7.1) (`_massa0`) | 91–15 | 0,57 → **0,68** | 2,83% → 3,39% | +0,56 |
+| veto 5, β ≥ 0,05 (§ 7.1) (`_massa5`) | 91–15 | 0,61 → **0,72** | 2,93% → 3,45% | +0,52 |
+| veto 5, β ≥ 0,50 (§ 7.1) (`_massa5_beta050`) | 91–15 | 0,82 → **0,91** | 3,23% → 3,56% | +0,34 |
+| CV unilateral gap 20, σ unilateral, β ≥ 0,05, veto 10 (§ 6.5) (`_U20s`) | 91–15 | 0,58 → **0,69** | 2,81% → 3,32% | +0,51 |
+| idem, β ≥ 0,25 (§ 6.2) (`_beta025`) | 91–15 | 0,72 → **0,82** | 3,06% → 3,47% | +0,41 |
+| idem, β ≥ 0,50 (§ 6.2) (`_beta050`) | 91–15 | 0,82 → **0,91** | 3,20% → 3,53% | +0,33 |
+| CV unilateral gap 1 (§ 6.1) (`_U1`) | 91–15 | 0,21 → **0,36** | 1,32% → 2,27% | +0,94 |
+| CV unilateral gap 5 (`_U5`) | 91–15 | 0,24 → **0,37** | 1,32% → 2,05% | +0,73 |
+| CV unilateral gap 20, σ LOO (`_U20`) | 91–15 | 0,55 → **0,66** | 2,66% → 3,22% | +0,56 |
+| gap 20, CV a partir do dia 63 (`_U20t63`) | 91–15 | 0,55 → **0,66** | 2,61% → 3,15% | +0,54 |
+| CV unilateral gap 40 (`_U40`) | 91–15 | 0,52 → **0,64** | 2,56% → 3,12% | +0,56 |
+| saída pela curva congelada (`_curva`) | 91–15 | 0,55 → **0,66** | 2,69% → 3,20% | +0,51 |
+| CV de bloco L = 20 (`_bloco`) | 91–15 | 0,49 → **0,61** | 2,36% → 2,94% | +0,58 |
+| CV de bloco, curva rebalanceada (`_rebal`) | 91–15 | 0,26 → **0,39** | 1,43% → 2,17% | +0,73 |
+| leave-one-out (`_L0`) | 91–15 | −0,15 → **0,01** | −1,03% → 0,04% | +1,07 |
+| linear estática, Rad (convenção oficial) | 91–15 | 0,93 → **1,02** | 3,72% → 4,05% | +0,33 |
+| idem | 91–25 | 0,66 → **0,73** | 2,75% → 3,05% | +0,30 |
+| linear, maior perna | 91–15 | 1,02 → **1,09** | 3,57% → 3,81% | +0,23 |
+| idem | 91–25 | 0,71 → **0,76** | 2,65% → 2,86% | +0,21 |
+| linear, slides 1 : β | 91–15 | 1,02 → **1,09** | 3,61% → 3,85% | +0,23 |
+| idem | 91–25 | 0,70 → **0,76** | 2,67% → 2,88% | +0,22 |
+
+Não refeitas (ficam só em preços, como registro): as rodadas de 06–07/10 da § 4 (bloco L = 10 e 40, veto 30,
+formação de bloco antiga) e as rodadas de teste `_chk_*`, `_repeticao`, `_lsup5*`.
+
+**O que muda nas conclusões:**
+- **Nenhuma decisão muda.** As ordenações que decidiram cada parâmetro se mantêm: maior perna > Rad; piso 0,50 >
+  0,25 > 0,05; unilateral gap 20 > bloco > gap 1 e 5; tangente > curva > rebalanceada; μ e σ fixos >
+  re-estimados; t_min 126 > 63. O LOO deixa de ter Sharpe negativo (−0,15 → 0,01), mas continua o pior.
+- **NP × linear (§ 9.2):** a diferença de Sharpe fica praticamente igual (+0,16, p = 0,22 contra a maior perna;
+  +0,20, p = 0,15 contra Rad), porque a rf credita as duas. Continua **comparável, sem significância a 5%**.
+- **Números de referência novos** (NP padrão): Sharpe 1,18 (1991–2015), 0,93 (1991–2025), 0,42 (2016–2025);
+  média 4,17% e 3,46% a.a.; linear Rad 1,02 / 0,73; linear maior perna 1,09 / 0,76.
+- Por regime de h (artefato, seção 10) a linear de referência passou a ser o notebook atual rodado em memória
+  (`lin_rad_2015_pares.csv`), não mais o arquivo de 14/09.
+
+**Atualizados nesta rodada:** § 9 (tabelas e texto), `relatorio_dim.md` e `relatorio_t63.md` (`compara_dim.py`,
+`relatorio_t63.py`), o exemplo dia a dia (`dados_negociacao_passo.json`, mesmo par PG ~ ITW) e o **artefato v5**
+(https://claude.ai/artifact/EmAQP4n7QWKY6dgFUpNAcE; `artefato/monta_v5.py` + `dados_artefato_v5.py` +
+`dados_formacao_tab_v5.py`, testado com `smoke_v5.js`). O painel de resultados dos três métodos foi refeito à parte
+(`validation/pipeline/roda_painel_rf.py`; NP padrão 1991–2025: 3,464% a.a., o mesmo valor daqui).
